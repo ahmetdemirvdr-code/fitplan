@@ -1,25 +1,25 @@
 import { z } from "zod";
 
 export const registerSchema = z.object({
-  name: z.string().min(2, "Ad en az 2 karakter olmali"),
-  email: z.string().email("Gecerli bir e-posta adresi girin"),
+  name: z.string().min(2, "Ad en az 2 karakter olmalı"),
+  email: z.string().email("Geçerli bir e-posta adresi girin"),
   password: z
     .string()
-    .min(6, "Sifre en az 6 karakter olmali")
-    .max(100, "Sifre en fazla 100 karakter olabilir"),
+    .min(6, "Şifre en az 6 karakter olmalı")
+    .max(100, "Şifre en fazla 100 karakter olabilir"),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Gecerli bir e-posta adresi girin"),
-  password: z.string().min(1, "Sifre gerekli"),
+  email: z.string().email("Geçerli bir e-posta adresi girin"),
+  password: z.string().min(1, "Şifre gerekli"),
 });
 
 export const profileSchema = z.object({
   // Step 1 - Personal
-  age: z.number().min(14, "Yas en az 14 olmali").max(100, "Yas en fazla 100 olabilir"),
+  age: z.number().min(14, "Yaş en az 14 olmalı").max(100, "Yaş en fazla 100 olabilir"),
   gender: z.enum(["MALE", "FEMALE"]),
-  height: z.number().min(100, "Boy en az 100 cm olmali").max(250, "Boy en fazla 250 cm olabilir"),
-  weight: z.number().min(30, "Kilo en az 30 kg olmali").max(300, "Kilo en fazla 300 kg olabilir"),
+  height: z.number().min(100, "Boy en az 100 cm olmalı").max(250, "Boy en fazla 250 cm olabilir"),
+  weight: z.number().min(30, "Kilo en az 30 kg olmalı").max(300, "Kilo en fazla 300 kg olabilir"),
   bodyFatPercentage: z.number().min(3).max(60).nullable().optional(),
 
   // Step 2 - Goals
@@ -56,7 +56,7 @@ export const profileSchema = z.object({
 
 export const foodLogSchema = z.object({
   mealType: z.enum(["BREAKFAST", "LUNCH", "DINNER", "SNACK"]),
-  description: z.string().min(1, "Yemek aciklamasi gerekli"),
+  description: z.string().min(1, "Yemek açıklaması gerekli"),
   calories: z.number().min(0),
   protein: z.number().min(0),
   carbs: z.number().min(0),
@@ -64,7 +64,7 @@ export const foodLogSchema = z.object({
 });
 
 export const waterLogSchema = z.object({
-  amount: z.number().min(1, "Miktar en az 1 ml olmali").max(5000, "Miktar en fazla 5000 ml olabilir"),
+  amount: z.number().min(1, "Miktar en az 1 ml olmalı").max(5000, "Miktar en fazla 5000 ml olabilir"),
 });
 
 export const measurementSchema = z.object({

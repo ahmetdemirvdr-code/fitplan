@@ -30,7 +30,7 @@ export default function SettingsPage() {
                 <div className="flex-1">
                   <Label className="font-semibold">Bildirimler</Label>
                   <p className="text-sm text-muted-foreground">
-                    Su, yemek ve antrenman hatirlatmalari
+                    Su, yemek ve antrenman hatırlatmalari
                   </p>
                 </div>
               </div>
@@ -68,12 +68,12 @@ export default function SettingsPage() {
                     Hesabi Sil
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Tum verilerin kalici olarak silinir
+                    Tüm verilerin kalıcı olarak silinir
                   </p>
                 </div>
               </div>
               <p className="mt-3 text-sm text-muted-foreground">
-                Bu ozellik yaklasimda...
+                Bu özellik yaklasimda...
               </p>
             </CardContent>
           </Card>

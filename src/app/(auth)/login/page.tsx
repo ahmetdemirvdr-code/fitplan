@@ -29,28 +29,28 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        toast.error("E-posta veya sifre hatali");
+        toast.error("E-posta veya şifre hatali");
       } else {
-        toast.success("Giris basarili!");
+        toast.success("Giriş başarılı!");
         router.push("/dashboard");
         router.refresh();
       }
     } catch {
-      toast.error("Bir hata olustu");
+      toast.error("Bir hata oluştu");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-green-50 to-white px-4 dark:from-green-950/20 dark:to-background">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#1A1A2E] px-4" style={{background: "radial-gradient(ellipse at top, #1E2D4A 0%, #1A1A2E 60%)"}}>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-600 text-white">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-lg shadow-[#FF6B35]/25" style={{background: "linear-gradient(135deg, #FF6B35, #ff8c5a)"}}>
             <Dumbbell className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold">FitPlan</h1>
-          <p className="mt-1 text-muted-foreground">Hesabina giris yap</p>
+          <p className="mt-1 text-muted-foreground">Hesabina giriş yap</p>
         </div>
 
         <Card>
@@ -74,12 +74,12 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Sifre</Label>
+                <Label htmlFor="password">Şifre</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Sifrenizi girin"
+                    placeholder="Şifrenizi girin"
                     value={form.password}
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, password: e.target.value }))
@@ -104,13 +104,13 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-base font-semibold"
+                className="w-full h-12 rounded-xl bg-[#FF6B35] hover:bg-[#E55A25] shadow-lg shadow-[#FF6B35]/25 text-base font-semibold"
                 disabled={loading}
               >
                 {loading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  "Giris Yap"
+                  "Giriş Yap"
                 )}
               </Button>
             </form>
@@ -121,9 +121,9 @@ export default function LoginPage() {
           Hesabin yok mu?{" "}
           <Link
             href="/register"
-            className="font-medium text-green-600 hover:underline"
+            className="font-medium text-[#FF6B35] hover:underline"
           >
-            Kayit Ol
+            Kayıt Ol
           </Link>
         </p>
       </div>

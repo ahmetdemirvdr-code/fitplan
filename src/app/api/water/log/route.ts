@@ -5,13 +5,13 @@ import { prisma } from "@/lib/prisma";
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return Response.json({ error: "Yetkisiz erisim" }, { status: 401 });
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   try {
     const { amount } = await request.json();
     if (!amount || typeof amount !== "number" || amount < 1) {
-      return Response.json({ error: "Gecerli bir miktar girin" }, { status: 400 });
+      return Response.json({ error: "Geçerli bir miktar girin" }, { status: 400 });
     }
 
     const today = new Date();
@@ -35,14 +35,14 @@ export async function POST(request: NextRequest) {
     return Response.json(waterLog, { status: 201 });
   } catch (error) {
     console.error("Water log error:", error);
-    return Response.json({ error: "Sunucu hatasi" }, { status: 500 });
+    return Response.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }
 
 export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return Response.json({ error: "Yetkisiz erisim" }, { status: 401 });
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   const searchParams = request.nextUrl.searchParams;
@@ -66,4 +66,37 @@ export async function GET(request: NextRequest) {
     totalMl,
     totalLiters: (totalMl / 1000).toFixed(1),
   });
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
+  }
+
+  try {
+    const id =
+      request.nextUrl.searchParams.get("id") ||
+      ((await request.json().catch(() => null)) as { id?: string } | null)?.id;
+
+    if (!id) {
+      return Response.json({ error: "Kayıt kimliği gerekli" }, { status: 400 });
+    }
+
+    const waterLog = await prisma.waterLog.findUnique({
+      where: { id },
+      include: { dailyLog: true },
+    });
+
+    if (!waterLog || waterLog.dailyLog.userId !== session.user.id) {
+      return Response.json({ error: "Kayıt bulunamadı" }, { status: 404 });
+    }
+
+    await prisma.waterLog.delete({ where: { id } });
+
+    return Response.json({ message: "Kayıt silindi" });
+  } catch (error) {
+    console.error("Water delete error:", error);
+    return Response.json({ error: "Sunucu hatası" }, { status: 500 });
+  }
 }

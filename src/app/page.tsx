@@ -6,40 +6,42 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-green-500 to-emerald-700 text-white">
+      <header className="relative overflow-hidden text-white" style={{background: "linear-gradient(135deg, #1A1A2E 0%, #1E2D4A 50%, #16213E 100%)"}}>
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="absolute inset-0" style={{background: "radial-gradient(ellipse at 30% 50%, rgba(255,107,53,0.15) 0%, transparent 60%)"}} />
         <div className="relative mx-auto max-w-md px-6 py-12 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-medium backdrop-blur-sm">
-            <Zap className="h-4 w-4" />
-            AI Destekli Fitness Asistani
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm border border-white/10">
+            <Zap className="h-4 w-4 text-[#FFE66D]" />
+            AI Destekli Fitness Asistanı
           </div>
           <h1 className="mb-4 text-4xl font-bold tracking-tight">
-            Hedeflerine Ozel
+            Hedeflerine Özel
             <br />
-            <span className="text-green-200">Spor & Beslenme</span>
+            <span className="text-[#FF6B35]">Spor & Beslenme</span>
             <br />
-            Plani
+            Planı
           </h1>
-          <p className="mb-8 text-lg text-green-100">
-            Yapay zeka ile sana ozel antrenman programi ve beslenme plani.
-            Gunluk takip, kalori hesaplama ve ilerleme analizi.
+          <p className="mb-8 text-lg text-[#EAEAEA]/70">
+            Yapay zeka ile sana özel antrenman programı ve beslenme planı.
+            Günlük takip, kalori hesaplama ve ilerleme analizi.
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/register">
               <Button
                 size="lg"
-                className="w-full bg-white text-green-700 hover:bg-green-50 font-semibold text-lg h-14 rounded-xl"
+                className="w-full font-semibold text-lg h-14 rounded-xl text-white shadow-lg shadow-[#FF6B35]/25"
+                style={{background: "linear-gradient(135deg, #FF6B35, #ff8c5a)"}}
               >
-                Ucretsiz Basla
+                Ücretsiz Başla
               </Button>
             </Link>
             <Link href="/login">
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full border-white/40 text-white hover:bg-white/10 font-medium h-12 rounded-xl"
+                className="w-full border-white/20 text-white hover:bg-white/10 font-medium h-12 rounded-xl"
               >
-                Giris Yap
+                Giriş Yap
               </Button>
             </Link>
           </div>
@@ -53,29 +55,29 @@ export default function LandingPage() {
         </h2>
         <div className="grid gap-4">
           <FeatureCard
-            icon={<Dumbbell className="h-6 w-6 text-green-600" />}
-            title="Kisisel Antrenman Programi"
-            description="Seviyene ve hedeflerine gore AI tarafindan olusturulan haftalik spor programi"
+            icon={<Dumbbell className="h-6 w-6 text-[#FF6B35]" />}
+            title="Kişisel Antrenman Programı"
+            description="Seviyene ve hedeflerine göre AI tarafından oluşturulan haftalık spor programı"
           />
           <FeatureCard
-            icon={<Apple className="h-6 w-6 text-orange-500" />}
-            title="Beslenme Plani & Kalori Takibi"
-            description="Yediklerini yaz, AI kalori ve makro degerlerini hesaplasin. Gunluk hedeflerini takip et."
+            icon={<Apple className="h-6 w-6 text-[#FF6B35]" />}
+            title="Beslenme Planı & Kalori Takibi"
+            description="Yediklerini yaz, AI kalori ve makro değerlerini hesaplasın. Günlük hedeflerini takip et."
           />
           <FeatureCard
-            icon={<Droplets className="h-6 w-6 text-blue-500" />}
+            icon={<Droplets className="h-6 w-6 text-[#4ECDC4]" />}
             title="Su Takibi"
-            description="Gunluk su tuketimini takip et, hatirlatmalar al"
+            description="Günlük su tüketimini takip et, hatırlatmalar al"
           />
           <FeatureCard
-            icon={<TrendingUp className="h-6 w-6 text-purple-500" />}
-            title="Ilerleme Analizi"
-            description="Kilo, olcu ve performans grafiklerinle ilerlemeni gor"
+            icon={<TrendingUp className="h-6 w-6 text-[#a29bfe]" />}
+            title="İlerleme Analizi"
+            description="Kilo, ölçü ve performans grafiklerinle ilerlemeni gör"
           />
           <FeatureCard
-            icon={<Shield className="h-6 w-6 text-emerald-600" />}
-            title="12 Haftalik Program Dongusu"
-            description="Her 12 haftada ilerlemene gore planin otomatik guncellenir"
+            icon={<Shield className="h-6 w-6 text-[#4ECDC4]" />}
+            title="12 Haftalık Program Döngüsü"
+            description="Her 12 haftada ilerlemene göre planın otomatik güncellenir"
           />
         </div>
       </section>
@@ -84,36 +86,37 @@ export default function LandingPage() {
       <section className="bg-muted/50 py-12">
         <div className="mx-auto max-w-md px-6">
           <h2 className="mb-8 text-center text-2xl font-bold text-foreground">
-            Nasil Calisiyor?
+            Nasıl Çalışıyor?
           </h2>
           <div className="space-y-6">
-            <Step number={1} title="Kayit Ol" desc="E-posta ile hizlica kayit ol" />
-            <Step number={2} title="Sorulari Yanitla" desc="7 adimda sana ozel bilgilerini paylas" />
-            <Step number={3} title="Planini Al" desc="AI sana ozel spor ve beslenme plani olustursun" />
-            <Step number={4} title="Takip Et" desc="Gunluk antrenman, yemek ve su takibini yap" />
+            <Step number={1} title="Kayıt Ol" desc="E-posta ile hızlıca kayıt ol" />
+            <Step number={2} title="Soruları Yanıtla" desc="7 adımda sana özel bilgilerini paylaş" />
+            <Step number={3} title="Planını Al" desc="AI sana özel spor ve beslenme planı oluştursun" />
+            <Step number={4} title="Takip Et" desc="Günlük antrenman, yemek ve su takibini yap" />
           </div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="mx-auto max-w-md px-6 py-12 text-center">
-        <h2 className="mb-4 text-2xl font-bold">Hemen Basla!</h2>
+        <h2 className="mb-4 text-2xl font-bold">Hemen Başla!</h2>
         <p className="mb-6 text-muted-foreground">
-          Ilk planin ucretsiz. 7 gun boyunca tum ozellikleri dene.
+          İlk planın ücretsiz. 7 gün boyunca tüm özellikleri dene.
         </p>
         <Link href="/register">
           <Button
             size="lg"
-            className="w-full bg-green-600 hover:bg-green-700 font-semibold text-lg h-14 rounded-xl"
+            className="w-full font-semibold text-lg h-14 rounded-xl text-white shadow-lg shadow-[#FF6B35]/25"
+            style={{background: "linear-gradient(135deg, #FF6B35, #ff8c5a)"}}
           >
-            Ucretsiz Kayit Ol
+            Ücretsiz Kayıt Ol
           </Button>
         </Link>
       </section>
 
       {/* Footer */}
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; 2024 FitPlan. Tum haklar saklidir.</p>
+        <p>&copy; 2024 FitPlan. Tüm hakları saklıdır.</p>
       </footer>
     </div>
   );
@@ -152,7 +155,7 @@ function Step({
 }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white font-bold">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-white font-bold">
         {number}
       </div>
       <div>

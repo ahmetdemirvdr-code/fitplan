@@ -9,7 +9,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       name: "credentials",
       credentials: {
         email: { label: "E-posta", type: "email" },
-        password: { label: "Sifre", type: "password" },
+        password: { label: "Şifre", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -17,7 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email: (credentials.email as string).trim().toLowerCase() },
           include: { profile: true },
         });
 
@@ -39,13 +39,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           hasProfile: !!user.profile,
+          role: user.role,
         };
       },
     }),
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   pages: {
     signIn: "/login",
@@ -54,15 +55,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.hasProfile = (user as unknown as Record<string, unknown>).hasProfile as boolean;
+        token.id = user.id!;
+        token.hasProfile = !!(user as { hasProfile?: boolean }).hasProfile;
+        token.role = (user as { role?: string }).role || "USER";
+      } else if (token.id) {
+        // Refresh role periodically from DB on subsequent requests is heavy;
+        // keep token role, admin layout still verifies DB.
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
-        (session.user as unknown as Record<string, unknown>).hasProfile = token.hasProfile as boolean;
+        session.user.hasProfile = token.hasProfile as boolean;
+        session.user.role = (token.role as "USER" | "ADMIN") || "USER";
       }
       return session;
     },

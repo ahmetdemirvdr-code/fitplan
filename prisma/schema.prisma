@@ -62,6 +62,11 @@ enum MealType {
   SNACK
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 // ==================== MODELS ====================
 
 model User {
@@ -69,6 +74,7 @@ model User {
   email            String    @unique
   passwordHash     String
   name             String
+  role             UserRole  @default(USER)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   isEmailVerified  Boolean   @default(false)
@@ -80,6 +86,7 @@ model User {
   dailyLogs              DailyLog[]
   pushSubscriptions      PushSubscription[]
   notificationPreference NotificationPreference?
+  aiUsages               AiUsage[]
 }
 
 model UserProfile {
@@ -277,4 +284,36 @@ model NotificationPreference {
   mealReminder            Boolean @default(true)
   workoutReminder         Boolean @default(true)
   reminderIntervalMinutes Int     @default(120)
+}
+
+// Shared exercise how-to cache (one AI generation per unique exercise name)
+model ExerciseGuide {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  nameEn         String
+  nameTr         String?
+  targetMuscle   String?
+  equipment      String?
+  steps          String[]
+  tips           String[]
+  commonMistakes String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([nameEn])
+}
+
+// Real OpenRouter spend per call (UI may show a markup multiplier)
+model AiUsage {
+  id               String   @id @default(uuid())
+  userId           String?
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  purpose          String
+  model            String
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  costUsd          Float    @default(0)
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

@@ -6,7 +6,7 @@ import {
   Plus,
   Minus,
   Loader2,
-  GlassWater,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,63 @@ interface WaterLog {
   time: string;
 }
 
+function WaterRing({
+  percent,
+  totalMl,
+  targetL,
+}: {
+  percent: number;
+  totalMl: number;
+  targetL: number;
+}) {
+  const size = 180;
+  const stroke = 10;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - Math.min(percent, 100) / 100);
+  const color = percent >= 100 ? "#2ECC71" : "#4ECDC4";
+
+  return (
+    <div className="relative mx-auto mb-4 flex h-[180px] w-[180px] items-center justify-center">
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#1A1A2E"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.3s" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <div className="font-stat text-3xl font-bold" style={{ color }}>
+          {(totalMl / 1000).toFixed(1)}L
+        </div>
+        <div className="text-sm text-[#EAEAEA]/50">/ {targetL}L</div>
+      </div>
+    </div>
+  );
+}
+
 export default function WaterPage() {
   const [waterLogs, setWaterLogs] = useState<WaterLog[]>([]);
   const [totalMl, setTotalMl] = useState(0);
-  const [target, setTarget] = useState(2.5); // liters
+  const [target, setTarget] = useState(2.5);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -68,16 +119,35 @@ export default function WaterPage() {
         toast.error("Eklenemedi");
       }
     } catch {
-      toast.error("Bir hata olustu");
+      toast.error("Bir hata oluştu");
     } finally {
       setAdding(false);
+    }
+  };
+
+  const deleteWater = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/water/log?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        await fetchData();
+        toast.success("Kayıt silindi");
+      } else {
+        toast.error("Silinemedi");
+      }
+    } catch {
+      toast.error("Bir hata oluştu");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#4ECDC4]" />
       </div>
     );
   }
@@ -88,112 +158,112 @@ export default function WaterPage() {
   const targetGlasses = Math.ceil(targetMl / 200);
 
   return (
-    <div className="px-4 py-6">
-      <div className="mx-auto max-w-md">
-        {/* Header */}
+    <div className="px-5 py-6">
+      <div className="mx-auto max-w-lg">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold">Su Takibi</h1>
-          <p className="text-muted-foreground">Gunluk su tuketimini takip et</p>
+          <p className="text-[#EAEAEA]/50">Günlük su tüketimini takip et</p>
         </div>
 
-        {/* Water Visual */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="relative mx-auto mb-4 flex h-48 w-32 items-end justify-center overflow-hidden rounded-2xl border-4 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/20">
-              {/* Water level */}
-              <div
-                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-500 to-blue-400 transition-all duration-500"
-                style={{ height: `${percent}%` }}
-              />
-              {/* Text overlay */}
-              <div className="relative z-10 mb-4 text-center">
-                <div className="text-3xl font-bold text-blue-700 dark:text-blue-300">
-                  {(totalMl / 1000).toFixed(1)}L
-                </div>
-                <div className="text-sm text-blue-600 dark:text-blue-400">
-                  / {target}L
-                </div>
-              </div>
+            <WaterRing percent={percent} totalMl={totalMl} targetL={target} />
+
+            <div className="mb-5 text-center text-sm text-[#EAEAEA]/50">
+              {glasses} / {targetGlasses} bardak · %{Math.round(percent)} tamamlandı
             </div>
 
-            <div className="mb-4 text-center">
-              <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
-                <GlassWater className="h-4 w-4" />
-                <span>
-                  {glasses} / {targetGlasses} bardak
-                </span>
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                %{Math.round(percent)} tamamlandi
-              </div>
-            </div>
-
-            {/* Quick Add Buttons */}
-            <div className="grid grid-cols-3 gap-2">
+            {/* ±200 controls */}
+            <div className="mb-4 flex items-center justify-center gap-4">
               <Button
+                type="button"
                 variant="outline"
-                className="h-14 rounded-xl flex-col gap-0.5"
+                size="icon"
+                className="h-12 w-12 rounded-full"
+                onClick={() => {
+                  const last = waterLogs[waterLogs.length - 1];
+                  if (last) void deleteWater(last.id);
+                }}
+                disabled={adding || waterLogs.length === 0 || !!deletingId}
+                aria-label="Son kaydı sil"
+              >
+                <Minus className="h-5 w-5 text-[#4ECDC4]" />
+              </Button>
+              <span className="font-stat text-sm text-[#EAEAEA]/60">±200ml</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 rounded-full"
                 onClick={() => addWater(200)}
                 disabled={adding}
+                aria-label="200ml ekle"
               >
-                <Droplets className="h-5 w-5 text-blue-500" />
-                <span className="text-xs">1 Bardak</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-14 rounded-xl flex-col gap-0.5"
-                onClick={() => addWater(330)}
-                disabled={adding}
-              >
-                <Droplets className="h-5 w-5 text-blue-500" />
-                <span className="text-xs">330ml</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-14 rounded-xl flex-col gap-0.5"
-                onClick={() => addWater(500)}
-                disabled={adding}
-              >
-                <Droplets className="h-5 w-5 text-blue-500" />
-                <span className="text-xs">500ml</span>
+                <Plus className="h-5 w-5 text-[#4ECDC4]" />
               </Button>
             </div>
 
-            {/* Custom Amount */}
-            <div className="mt-4">
-              <CustomWaterInput onAdd={addWater} disabled={adding} />
+            {/* Preset chips */}
+            <div className="mb-4 flex flex-wrap justify-center gap-2">
+              {[200, 330, 500].map((ml) => (
+                <button
+                  key={ml}
+                  type="button"
+                  disabled={adding}
+                  onClick={() => addWater(ml)}
+                  className="rounded-full border border-[#4ECDC4]/40 bg-[#4ECDC4]/15 px-4 py-2 text-sm font-semibold text-[#4ECDC4] transition-colors hover:bg-[#4ECDC4]/25 disabled:opacity-50"
+                >
+                  +{ml}ml
+                </button>
+              ))}
             </div>
+
+            <CustomWaterInput onAdd={addWater} disabled={adding} />
           </CardContent>
         </Card>
 
-        {/* Water Log History */}
         <div>
-          <h3 className="mb-3 font-semibold">Bugunun Kayitlari</h3>
+          <h3 className="mb-3 font-semibold">Bugünün Kayıtları</h3>
           {waterLogs.length > 0 ? (
             <div className="space-y-2">
               {waterLogs.map((log) => (
                 <Card key={log.id}>
                   <CardContent className="flex items-center justify-between p-3">
                     <div className="flex items-center gap-2">
-                      <Droplets className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm font-medium">
+                      <Droplets className="h-4 w-4 text-[#4ECDC4]" />
+                      <span className="font-stat text-sm font-medium">
                         {log.amount}ml
                       </span>
+                      <span className="text-xs text-[#EAEAEA]/40">
+                        {new Date(log.time).toLocaleTimeString("tr-TR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(log.time).toLocaleTimeString("tr-TR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-[#E74C3C] hover:bg-[#E74C3C]/15 hover:text-[#E74C3C]"
+                      onClick={() => deleteWater(log.id)}
+                      disabled={deletingId === log.id}
+                      aria-label="Kaydı sil"
+                    >
+                      {deletingId === log.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : (
             <Card>
-              <CardContent className="p-4 text-center text-sm text-muted-foreground">
-                Henuz su kaydi yok. Ilk bardagini ekle!
+              <CardContent className="p-4 text-center text-sm text-[#EAEAEA]/50">
+                Henüz su kaydı yok. İlk bardağını ekle!
               </CardContent>
             </Card>
           )}
@@ -215,26 +285,29 @@ function CustomWaterInput({
   return (
     <div className="flex items-center gap-2">
       <Button
+        type="button"
         variant="outline"
         size="icon"
-        className="h-10 w-10 rounded-xl shrink-0"
+        className="h-10 w-10 shrink-0 rounded-xl"
         onClick={() => setAmount(Math.max(50, amount - 50))}
         disabled={disabled}
       >
         <Minus className="h-4 w-4" />
       </Button>
-      <div className="flex-1 text-center font-semibold">{amount}ml</div>
+      <div className="font-stat flex-1 text-center font-semibold">{amount}ml</div>
       <Button
+        type="button"
         variant="outline"
         size="icon"
-        className="h-10 w-10 rounded-xl shrink-0"
+        className="h-10 w-10 shrink-0 rounded-xl"
         onClick={() => setAmount(Math.min(2000, amount + 50))}
         disabled={disabled}
       >
         <Plus className="h-4 w-4" />
       </Button>
       <Button
-        className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 px-4"
+        type="button"
+        className="h-10 rounded-xl bg-[#4ECDC4] px-4 font-semibold text-[#1A1A2E] shadow-lg shadow-[#4ECDC4]/25 hover:bg-[#3DBDB4] hover:text-[#1A1A2E]"
         onClick={() => onAdd(amount)}
         disabled={disabled}
       >

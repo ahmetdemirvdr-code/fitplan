@@ -6,7 +6,7 @@ import { measurementSchema } from "@/lib/validations";
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return Response.json({ error: "Yetkisiz erisim" }, { status: 401 });
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   try {
@@ -43,14 +43,14 @@ export async function POST(request: NextRequest) {
     return Response.json(dailyLog);
   } catch (error) {
     console.error("Measurement error:", error);
-    return Response.json({ error: "Sunucu hatasi" }, { status: 500 });
+    return Response.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }
 
 export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return Response.json({ error: "Yetkisiz erisim" }, { status: 401 });
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   const searchParams = request.nextUrl.searchParams;

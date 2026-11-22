@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return Response.json(
-        { error: "Bu e-posta adresi zaten kayitli" },
+        { error: "Bu e-posta adresi zaten kayıtlı" },
         { status: 400 }
       );
     }
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     return Response.json(
       {
-        message: "Kayit basarili",
+        message: "Kayıt başarılı",
         user: { id: user.id, email: user.email, name: user.name },
       },
       { status: 201 }
@@ -42,13 +42,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
       return Response.json(
-        { error: "Gecersiz veri", details: error },
+        { error: "Geçersiz veri", details: error },
         { status: 400 }
       );
     }
     console.error("Register error:", error);
     return Response.json(
-      { error: "Sunucu hatasi" },
+      { error: "Sunucu hatası" },
       { status: 500 }
     );
   }

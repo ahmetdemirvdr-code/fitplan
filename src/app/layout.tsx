@@ -1,23 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const inter = Inter({
+  variable: "--font-sans",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "FitPlan - Kisisel Spor & Beslenme Asistani",
+  title: "FitPlan - Kişisel Spor & Beslenme Asistanı",
   description:
-    "AI destekli kisisel spor programi ve beslenme plani. Hedeflerinize uygun antrenman ve diyet takibi.",
+    "AI destekli kişisel spor programı ve beslenme planı. Hedeflerinize uygun antrenman ve diyet takibi.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -31,19 +33,16 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#22c55e" },
-    { media: "(prefers-color-scheme: dark)", color: "#16a34a" },
-  ],
+  themeColor: "#1A1A2E",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#1A1A2E] text-[#EAEAEA]">
         <Providers>
           {children}
           <Toaster position="top-center" richColors />

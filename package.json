@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "seed:admin": "node scripts/seed-admin.mjs"
+  },
+  "prisma": {
+    "seed": "node scripts/seed-admin.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -34,17 +34,17 @@ interface PlanData {
 }
 
 const mealTypeLabels: Record<string, string> = {
-  BREAKFAST: "Kahvalti",
-  LUNCH: "Ogle Yemegi",
-  DINNER: "Aksam Yemegi",
-  SNACK: "Ara Ogun",
+  BREAKFAST: "Kahvaltı",
+  LUNCH: "Öğle Yemeği",
+  DINNER: "Akşam Yemeği",
+  SNACK: "Ara Öğün",
 };
 
 const mealTypeColors: Record<string, string> = {
-  BREAKFAST: "text-amber-600",
-  LUNCH: "text-orange-600",
-  DINNER: "text-red-600",
-  SNACK: "text-purple-600",
+  BREAKFAST: "text-[#FFE66D]",
+  LUNCH: "text-[#FF6B35]",
+  DINNER: "text-[#E74C3C]",
+  SNACK: "text-[#a29bfe]",
 };
 
 export default function NutritionPage() {
@@ -102,7 +102,7 @@ export default function NutritionPage() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#FF6B35]" />
       </div>
     );
   }
@@ -125,10 +125,10 @@ export default function NutritionPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Beslenme</h1>
-            <p className="text-muted-foreground">Gunluk beslenme takibi</p>
+            <p className="text-muted-foreground">Günlük beslenme takibi</p>
           </div>
           <Link href="/nutrition/add">
-            <Button className="rounded-xl bg-green-600 hover:bg-green-700">
+            <Button className="rounded-xl bg-[#FF6B35] hover:bg-[#E55A25] shadow-lg shadow-[#FF6B35]/25">
               <Plus className="mr-1 h-4 w-4" />
               Ekle
             </Button>
@@ -141,8 +141,8 @@ export default function NutritionPage() {
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-orange-500" />
-                  <span className="font-semibold">Gunluk Ozet</span>
+                  <Flame className="h-5 w-5 text-[#FF6B35]" />
+                  <span className="font-semibold">Günlük Ozet</span>
                 </div>
                 <span className="text-sm font-medium">
                   {totals.calories} / {plan.dailyCalorieTarget} kcal
@@ -155,19 +155,19 @@ export default function NutritionPage() {
                   label="Protein"
                   current={totals.protein}
                   target={plan.proteinTarget}
-                  color="text-blue-600"
+                  color="text-[#4ECDC4]"
                 />
                 <MacroCard
                   label="Karb"
                   current={totals.carbs}
                   target={plan.carbTarget}
-                  color="text-amber-600"
+                  color="text-[#FFE66D]"
                 />
                 <MacroCard
-                  label="Yag"
+                  label="Yağ"
                   current={totals.fat}
                   target={plan.fatTarget}
-                  color="text-red-500"
+                  color="text-[#E74C3C]"
                 />
               </div>
             </CardContent>
@@ -217,7 +217,7 @@ export default function NutritionPage() {
             ) : (
               <Card>
                 <CardContent className="p-3 text-center text-sm text-muted-foreground">
-                  Henuz yemek eklenmedi
+                  Henüz yemek eklenmedi
                 </CardContent>
               </Card>
             )}

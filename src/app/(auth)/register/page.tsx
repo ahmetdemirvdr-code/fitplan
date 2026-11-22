@@ -32,7 +32,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error || "Kayit basarisiz");
+        toast.error(data.error || "Kayıt başarısız");
         setLoading(false);
         return;
       }
@@ -45,28 +45,28 @@ export default function RegisterPage() {
       });
 
       if (result?.error) {
-        toast.error("Giris yapilamadi");
+        toast.error("Giriş yapılamadı");
         router.push("/login");
       } else {
-        toast.success("Kayit basarili! Profilini olusturalim.");
+        toast.success("Kayıt başarılı! Profilini oluşturalım.");
         router.push("/onboarding");
       }
     } catch {
-      toast.error("Bir hata olustu");
+      toast.error("Bir hata oluştu");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-green-50 to-white px-4 dark:from-green-950/20 dark:to-background">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#1A1A2E] px-4" style={{background: "radial-gradient(ellipse at top, #1E2D4A 0%, #1A1A2E 60%)"}}>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-600 text-white">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-lg shadow-[#FF6B35]/25" style={{background: "linear-gradient(135deg, #FF6B35, #ff8c5a)"}}>
             <Dumbbell className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold">FitPlan</h1>
-          <p className="mt-1 text-muted-foreground">Yeni hesap olustur</p>
+          <p className="mt-1 text-muted-foreground">Yeni hesap oluştur</p>
         </div>
 
         <Card>
@@ -107,7 +107,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Sifre</Label>
+                <Label htmlFor="password">Şifre</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -141,13 +141,13 @@ export default function RegisterPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-base font-semibold"
+                className="w-full h-12 rounded-xl bg-[#FF6B35] hover:bg-[#E55A25] shadow-lg shadow-[#FF6B35]/25 text-base font-semibold"
                 disabled={loading}
               >
                 {loading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  "Kayit Ol"
+                  "Kayıt Ol"
                 )}
               </Button>
             </form>
@@ -158,9 +158,9 @@ export default function RegisterPage() {
           Zaten hesabin var mi?{" "}
           <Link
             href="/login"
-            className="font-medium text-green-600 hover:underline"
+            className="font-medium text-[#FF6B35] hover:underline"
           >
-            Giris Yap
+            Giriş Yap
           </Link>
         </p>
       </div>

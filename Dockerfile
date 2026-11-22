@@ -27,18 +27,20 @@ RUN apk add --no-cache openssl libc6-compat \
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/scripts ./scripts
 
 # Prisma CLI + engines for runtime schema sync
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 
 RUN chmod +x ./docker-entrypoint.sh \
-  && chown -R nextjs:nodejs /app/prisma /app/node_modules /app/docker-entrypoint.sh
+  && chown -R nextjs:nodejs /app/prisma /app/node_modules /app/scripts /app/docker-entrypoint.sh
 
 USER nextjs
 

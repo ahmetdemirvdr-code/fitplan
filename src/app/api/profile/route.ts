@@ -6,7 +6,7 @@ import { profileSchema } from "@/lib/validations";
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
-    return Response.json({ error: "Yetkisiz erisim" }, { status: 401 });
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   const profile = await prisma.userProfile.findUnique({
@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return Response.json({ error: "Yetkisiz erisim" }, { status: 401 });
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   try {
@@ -51,17 +51,17 @@ export async function POST(request: NextRequest) {
     return Response.json(profile, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
-      return Response.json({ error: "Gecersiz veri", details: error }, { status: 400 });
+      return Response.json({ error: "Geçersiz veri", details: error }, { status: 400 });
     }
     console.error("Profile creation error:", error);
-    return Response.json({ error: "Sunucu hatasi" }, { status: 500 });
+    return Response.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return Response.json({ error: "Yetkisiz erisim" }, { status: 401 });
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   try {
@@ -82,6 +82,6 @@ export async function PUT(request: NextRequest) {
     return Response.json(profile);
   } catch (error) {
     console.error("Profile update error:", error);
-    return Response.json({ error: "Sunucu hatasi" }, { status: 500 });
+    return Response.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }

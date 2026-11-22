@@ -10,10 +10,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
 const mealTypes = [
-  { value: "BREAKFAST", label: "Kahvalti" },
-  { value: "LUNCH", label: "Ogle Yemegi" },
-  { value: "DINNER", label: "Aksam Yemegi" },
-  { value: "SNACK", label: "Ara Ogun" },
+  { value: "BREAKFAST", label: "Kahvaltı" },
+  { value: "LUNCH", label: "Öğle Yemeği" },
+  { value: "DINNER", label: "Akşam Yemeği" },
+  { value: "SNACK", label: "Ara Öğün" },
 ];
 
 interface FoodAnalysis {
@@ -36,7 +36,7 @@ export default function AddFoodPage() {
 
   const analyzeFood = async () => {
     if (!description.trim()) {
-      toast.error("Yemek aciklamasi girin");
+      toast.error("Yemek açıklaması girin");
       return;
     }
 
@@ -56,7 +56,7 @@ export default function AddFoodPage() {
         toast.error("Yemek analiz edilemedi. Tekrar deneyin.");
       }
     } catch {
-      toast.error("Bir hata olustu");
+      toast.error("Bir hata oluştu");
     } finally {
       setAnalyzing(false);
     }
@@ -84,10 +84,10 @@ export default function AddFoodPage() {
         toast.success("Yemek eklendi!");
         router.push("/nutrition");
       } else {
-        toast.error("Kayit sirasinda hata olustu");
+        toast.error("Kayıt sirasinda hata oluştu");
       }
     } catch {
-      toast.error("Bir hata olustu");
+      toast.error("Bir hata oluştu");
     } finally {
       setSaving(false);
     }
@@ -108,7 +108,7 @@ export default function AddFoodPage() {
           <div className="space-y-5">
             {/* Meal Type */}
             <div className="space-y-2">
-              <Label>Ogun</Label>
+              <Label>Öğün</Label>
               <div className="grid grid-cols-2 gap-2">
                 {mealTypes.map((mt) => (
                   <button
@@ -116,8 +116,8 @@ export default function AddFoodPage() {
                     onClick={() => setMealType(mt.value)}
                     className={`rounded-xl border-2 p-3 text-sm font-medium transition-all ${
                       mealType === mt.value
-                        ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-950/20"
-                        : "border-border hover:border-green-200"
+                        ? "border-[#FF6B35] bg-[#FF6B35]/10 text-[#FF6B35]"
+                        : "border-border hover:border-[#FF6B35]/30"
                     }`}
                   >
                     {mt.label}
@@ -133,17 +133,17 @@ export default function AddFoodPage() {
                 id="food"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Ornegin: 1 tabak mercimek corbasi, 2 dilim ekmek"
+                placeholder="Örneğin: 1 tabak mercimek çorbası, 2 dilim ekmek"
                 className="h-12 rounded-xl"
               />
               <p className="text-xs text-muted-foreground">
-                Yediklerini olabildigince detayli yaz. Porsiyon ve miktar
+                Yediklerini olabildiğince detaylı yaz. Porsiyon ve miktar
                 belirt.
               </p>
             </div>
 
             <Button
-              className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700"
+              className="w-full h-12 rounded-xl bg-[#FF6B35] hover:bg-[#E55A25] shadow-lg shadow-[#FF6B35]/25"
               onClick={analyzeFood}
               disabled={analyzing || !description.trim()}
             >
@@ -163,23 +163,23 @@ export default function AddFoodPage() {
         ) : (
           <div className="space-y-5">
             {/* Analysis Result */}
-            <Card className="border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/10">
+            <Card className="border-[#FF6B35]/30 bg-[#FF6B35]/10">
               <CardContent className="p-4">
                 <div className="mb-3 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-green-600" />
+                  <Sparkles className="h-5 w-5 text-[#FF6B35]" />
                   <span className="font-semibold">AI Analiz Sonucu</span>
                 </div>
                 <p className="mb-4 text-sm">{analysis?.description}</p>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg bg-white p-3 text-center dark:bg-background">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="text-2xl font-bold text-[#FF6B35]">
                       {analysis?.calories}
                     </div>
                     <div className="text-xs text-muted-foreground">kcal</div>
                   </div>
                   <div className="rounded-lg bg-white p-3 text-center dark:bg-background">
-                    <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-2xl font-bold text-[#4ECDC4]">
                       {analysis?.protein}g
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -187,7 +187,7 @@ export default function AddFoodPage() {
                     </div>
                   </div>
                   <div className="rounded-lg bg-white p-3 text-center dark:bg-background">
-                    <div className="text-2xl font-bold text-amber-600">
+                    <div className="text-2xl font-bold text-[#FFE66D]">
                       {analysis?.carbs}g
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -195,10 +195,10 @@ export default function AddFoodPage() {
                     </div>
                   </div>
                   <div className="rounded-lg bg-white p-3 text-center dark:bg-background">
-                    <div className="text-2xl font-bold text-red-500">
+                    <div className="text-2xl font-bold text-[#E74C3C]">
                       {analysis?.fat}g
                     </div>
-                    <div className="text-xs text-muted-foreground">Yag</div>
+                    <div className="text-xs text-muted-foreground">Yağ</div>
                   </div>
                 </div>
 
@@ -222,7 +222,7 @@ export default function AddFoodPage() {
                 Duzelt
               </Button>
               <Button
-                className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-700"
+                className="flex-1 h-12 rounded-xl bg-[#FF6B35] hover:bg-[#E55A25] shadow-lg shadow-[#FF6B35]/25"
                 onClick={saveFood}
                 disabled={saving}
               >

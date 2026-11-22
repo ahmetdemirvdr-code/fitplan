@@ -1,25 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  ClipboardPaste,
+  MessageSquare,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { PlanGeneratingStatus } from "@/components/plan-generating-status";
 
 const STEPS = [
-  "Kisisel Bilgiler",
+  "Kişisel Bilgiler",
   "Hedef",
-  "Saglik Durumu",
-  "Spor Gecmisi",
+  "Sağlık Durumu",
+  "Spor Geçmişi",
   "Ekipman",
   "Zaman",
   "Beslenme",
 ];
+
+type OnboardingMode = "choose" | "questionnaire" | "import";
 
 type FormData = {
   age: number;
@@ -76,11 +87,76 @@ const initialForm: FormData = {
 };
 
 export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[#FF6B35]" />
+        </div>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
+  );
+}
+
+function OnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRetake = searchParams.get("retake") === "1";
+  const [mode, setMode] = useState<OnboardingMode>(
+    isRetake ? "questionnaire" : "choose"
+  );
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialForm);
+  const [existingProgram, setExistingProgram] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatingPlan, setGeneratingPlan] = useState(false);
+
+  useEffect(() => {
+    if (!isRetake) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (cancelled) return;
+        setForm((prev) => ({
+          ...prev,
+          age: data.age ?? prev.age,
+          gender: data.gender ?? prev.gender,
+          height: data.height ?? prev.height,
+          weight: data.weight ?? prev.weight,
+          bodyFatPercentage: data.bodyFatPercentage ?? prev.bodyFatPercentage,
+          goal: data.goal ?? prev.goal,
+          targetWeight: data.targetWeight ?? prev.targetWeight,
+          targetDuration: data.targetDuration ?? prev.targetDuration,
+          healthConditions: data.healthConditions ?? prev.healthConditions,
+          allergies: data.allergies ?? prev.allergies,
+          injuries: data.injuries ?? prev.injuries,
+          dietPreference: data.dietPreference ?? prev.dietPreference,
+          experienceLevel: data.experienceLevel ?? prev.experienceLevel,
+          hasGymAccess: data.hasGymAccess ?? prev.hasGymAccess,
+          homeEquipment: data.homeEquipment ?? prev.homeEquipment,
+          bodyweightOnly: data.bodyweightOnly ?? prev.bodyweightOnly,
+          daysPerWeek: data.daysPerWeek ?? prev.daysPerWeek,
+          minutesPerDay: data.minutesPerDay ?? prev.minutesPerDay,
+          preferredTime: data.preferredTime ?? prev.preferredTime,
+          mealsPerDay: data.mealsPerDay ?? prev.mealsPerDay,
+          hasSnacks: data.hasSnacks ?? prev.hasSnacks,
+          eatsAtHome: data.eatsAtHome ?? prev.eatsAtHome,
+          budget: data.budget ?? prev.budget,
+          waterHabit: data.waterHabit ?? prev.waterHabit,
+        }));
+      } catch {
+        // keep defaults
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isRetake]);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
@@ -106,12 +182,13 @@ export default function OnboardingPage() {
 
   const handlePrev = () => {
     if (step > 0) setStep(step - 1);
+    else if (isRetake) router.push("/profile");
+    else setMode("choose");
   };
 
-  const handleSubmit = async () => {
+  const saveProfileAndGenerate = async (programText?: string) => {
     setLoading(true);
     try {
-      // Save profile
       const profileRes = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -125,46 +202,250 @@ export default function OnboardingPage() {
         return;
       }
 
-      toast.success("Profil kaydedildi! Plan olusturuluyor...");
+      toast.success(
+        programText
+          ? "Programın alındı! FitPlan formatına dönüştürülüyor..."
+          : "Profil kaydedildi! Plan oluşturuluyor..."
+      );
       setGeneratingPlan(true);
 
-      // Generate fitness plan
       const planRes = await fetch("/api/plan/generate", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          programText ? { existingProgram: programText } : {}
+        ),
       });
 
       if (!planRes.ok) {
-        toast.error("Plan olusturulamadi. Dashboard'dan tekrar deneyebilirsiniz.");
-        router.push("/dashboard");
+        const data = await planRes.json().catch(() => ({}));
+        toast.error(
+          data.error ||
+            "Plan oluşturulamadı. Dashboard'dan tekrar deneyebilirsiniz."
+        );
+        router.push(data.code === "AI_BUDGET_EXCEEDED" ? "/profile" : "/dashboard");
         return;
       }
 
-      toast.success("Planin hazir!");
+      toast.success("Planın hazır!");
       router.push("/dashboard");
       router.refresh();
     } catch {
-      toast.error("Bir hata olustu");
+      toast.error("Bir hata oluştu");
     } finally {
       setLoading(false);
       setGeneratingPlan(false);
     }
   };
 
+  const handleSubmit = async () => {
+    await saveProfileAndGenerate();
+  };
+
+  const handleImportSubmit = async () => {
+    const text = existingProgram.trim();
+    if (text.length < 40) {
+      toast.error("Lütfen mevcut programını biraz daha detaylı yapıştır");
+      return;
+    }
+    if (!form.age || !form.height || !form.weight || !form.gender) {
+      toast.error("Yaş, boy, kilo ve cinsiyet gerekli");
+      return;
+    }
+    await saveProfileAndGenerate(text);
+  };
+
   if (generatingPlan) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6">
-        <div className="text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-            <Sparkles className="h-10 w-10 text-green-600 animate-pulse" />
+      <PlanGeneratingStatus
+        detail={
+          mode === "import"
+            ? "Mevcut programın FitPlan formatına dönüştürülüyor..."
+            : "AI sana özel spor ve beslenme planı oluşturuyor..."
+        }
+      />
+    );
+  }
+
+  if (mode === "choose") {
+    return (
+      <div className="flex min-h-screen flex-col bg-background px-5 py-10">
+        <div className="mx-auto w-full max-w-md space-y-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Planını nasıl oluşturalım?</h1>
+            <p className="mt-2 text-sm text-[#EAEAEA]/50">
+              Soru-cevap ile sıfırdan plan veya elindeki programı yapıştır.
+            </p>
+            {isRetake && (
+              <p className="mt-2 text-xs text-[#4ECDC4]">
+                Mevcut profilin ve planın duruyor. Kaydetmeden çıkarsan hiçbir şey silinmez.
+              </p>
+            )}
           </div>
-          <h2 className="mb-2 text-xl font-bold">Planin Hazirlaniyor</h2>
-          <p className="text-muted-foreground">
-            AI sana ozel spor ve beslenme plani olusturuyor...
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Bu islem 15-30 saniye surebilir
-          </p>
-          <Loader2 className="mx-auto mt-6 h-8 w-8 animate-spin text-green-600" />
+
+          <button
+            type="button"
+            onClick={() => {
+              setMode("questionnaire");
+              setStep(0);
+            }}
+            className="flex w-full items-start gap-4 rounded-2xl border border-[#FF6B35]/30 bg-[#FF6B35]/10 p-4 text-left transition hover:bg-[#FF6B35]/15"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#FF6B35]/20 text-[#FF6B35]">
+              <MessageSquare size={22} />
+            </div>
+            <div>
+              <p className="font-semibold text-[#EAEAEA]">Soru-cevap ile oluştur</p>
+              <p className="mt-1 text-sm text-[#EAEAEA]/50">
+                7 adımda bilgilerini paylaş; AI sana özel plan hazırlasın.
+              </p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMode("import")}
+            className="flex w-full items-start gap-4 rounded-2xl border border-[#4ECDC4]/30 bg-[#4ECDC4]/10 p-4 text-left transition hover:bg-[#4ECDC4]/15"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#4ECDC4]/20 text-[#4ECDC4]">
+              <ClipboardPaste size={22} />
+            </div>
+            <div>
+              <p className="font-semibold text-[#EAEAEA]">Kendi programımı yapıştır</p>
+              <p className="mt-1 text-sm text-[#EAEAEA]/50">
+                Mevcut antrenman programını yapıştır; sorular atlanır, AI buna göre planı kurar.
+              </p>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === "import") {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <div className="sticky top-0 z-10 border-b bg-background/95 px-4 py-3 backdrop-blur-sm">
+          <div className="mx-auto max-w-md">
+            <p className="font-medium text-[#4ECDC4]">Programı içe aktar</p>
+            <p className="text-xs text-[#EAEAEA]/40">
+              Soru-cevap atlandı · Minimal bilgiler + program metni
+            </p>
+          </div>
+        </div>
+
+        <div className="flex-1 px-4 py-6">
+          <div className="mx-auto max-w-md space-y-5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="import-age">Yaş</Label>
+                <Input
+                  id="import-age"
+                  type="number"
+                  value={form.age}
+                  onChange={(e) => updateForm("age", Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Cinsiyet</Label>
+                <div className="flex gap-2">
+                  {[
+                    { v: "MALE", l: "Erkek" },
+                    { v: "FEMALE", l: "Kadın" },
+                  ].map((g) => (
+                    <Button
+                      key={g.v}
+                      type="button"
+                      variant={form.gender === g.v ? "default" : "outline"}
+                      className="flex-1 rounded-xl"
+                      onClick={() => updateForm("gender", g.v)}
+                    >
+                      {g.l}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="import-height">Boy (cm)</Label>
+                <Input
+                  id="import-height"
+                  type="number"
+                  value={form.height}
+                  onChange={(e) => updateForm("height", Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="import-weight">Kilo (kg)</Label>
+                <Input
+                  id="import-weight"
+                  type="number"
+                  value={form.weight}
+                  onChange={(e) => updateForm("weight", Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Hedef</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { v: "LOSE_WEIGHT", l: "Kilo ver" },
+                  { v: "BUILD_MUSCLE", l: "Kas yap" },
+                  { v: "MAINTAIN", l: "Koruma" },
+                  { v: "ENDURANCE", l: "Dayanıklılık" },
+                ].map((g) => (
+                  <Button
+                    key={g.v}
+                    type="button"
+                    variant={form.goal === g.v ? "default" : "outline"}
+                    className="rounded-xl"
+                    onClick={() => updateForm("goal", g.v)}
+                  >
+                    {g.l}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="existing-program">Mevcut antrenman programın</Label>
+              <Textarea
+                id="existing-program"
+                value={existingProgram}
+                onChange={(e) => setExistingProgram(e.target.value)}
+                placeholder={`Örnek:\nPazartesi - Göğüs\nBench Press 4x8-10\nIncline DB Press 3x10\n...\nÇarşamba - Sırt\nPull-up 4x8\n...`}
+                className="min-h-[220px] rounded-xl bg-[#16213E] text-sm"
+              />
+              <p className="text-xs text-[#EAEAEA]/40">
+                Günler, hareketler, set/tekrar yazman yeterli. AI bunu FitPlan formatına çevirir.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 border-t bg-background px-4 py-4">
+          <div className="mx-auto flex max-w-md gap-3">
+            <Button
+              variant="outline"
+              className="h-12 flex-1 rounded-xl"
+              onClick={() => setMode("choose")}
+              disabled={loading}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Geri
+            </Button>
+            <Button
+              className="h-12 flex-1 rounded-xl bg-[#4ECDC4] font-semibold text-[#1A1A2E] hover:bg-[#3DBDB4]"
+              onClick={handleImportSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "Programdan Oluştur"
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -175,9 +456,25 @@ export default function OnboardingPage() {
       {/* Header */}
       <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm px-4 py-3">
         <div className="mx-auto max-w-md">
+          {isRetake && (
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-xs text-[#4ECDC4]">
+                Kaydetmeden çıkarsan mevcut planın korunur
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs text-[#EAEAEA]/60"
+                onClick={() => router.push("/dashboard")}
+              >
+                Vazgeç
+              </Button>
+            </div>
+          )}
           <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium text-green-600">
-              Adim {step + 1}/{STEPS.length}
+            <span className="font-medium text-[#FF6B35]">
+              Adım {step + 1}/{STEPS.length}
             </span>
             <span className="text-muted-foreground">{STEPS[step]}</span>
           </div>
@@ -213,19 +510,17 @@ export default function OnboardingPage() {
       {/* Navigation */}
       <div className="sticky bottom-0 border-t bg-background px-4 py-4">
         <div className="mx-auto flex max-w-md gap-3">
-          {step > 0 && (
-            <Button
-              variant="outline"
-              className="h-12 flex-1 rounded-xl"
-              onClick={handlePrev}
-            >
-              <ChevronLeft className="mr-1 h-4 w-4" />
-              Geri
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            className="h-12 flex-1 rounded-xl"
+            onClick={handlePrev}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Geri
+          </Button>
           {step < STEPS.length - 1 ? (
             <Button
-              className="h-12 flex-1 rounded-xl bg-green-600 hover:bg-green-700"
+              className="h-12 flex-1 rounded-xl bg-[#FF6B35] hover:bg-[#E55A25] shadow-lg shadow-[#FF6B35]/25"
               onClick={handleNext}
             >
               Devam
@@ -233,7 +528,7 @@ export default function OnboardingPage() {
             </Button>
           ) : (
             <Button
-              className="h-12 flex-1 rounded-xl bg-green-600 hover:bg-green-700"
+              className="h-12 flex-1 rounded-xl bg-[#FF6B35] hover:bg-[#E55A25] shadow-lg shadow-[#FF6B35]/25"
               onClick={handleSubmit}
               disabled={loading}
             >
@@ -242,7 +537,7 @@ export default function OnboardingPage() {
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Planimi Olustur
+                  Planımı Oluştur
                 </>
               )}
             </Button>
@@ -265,9 +560,9 @@ function Step1Personal({ form, updateForm }: StepProps) {
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <h2 className="text-xl font-bold">Kisisel Bilgilerin</h2>
+        <h2 className="text-xl font-bold">Kişisel Bilgilerin</h2>
         <p className="text-sm text-muted-foreground">
-          Sana uygun plan icin temel bilgilerini gir
+          Sana uygun plan için temel bilgilerini gir
         </p>
       </div>
 
@@ -282,13 +577,13 @@ function Step1Personal({ form, updateForm }: StepProps) {
           <SelectCard
             selected={form.gender === "FEMALE"}
             onClick={() => updateForm("gender", "FEMALE")}
-            label="Kadin"
+            label="Kadın"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="age">Yas</Label>
+        <Label htmlFor="age">Yaş</Label>
         <Input
           id="age"
           type="number"
@@ -332,7 +627,7 @@ function Step1Personal({ form, updateForm }: StepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="bodyFat">Vucut Yag Orani (%) - Opsiyonel</Label>
+        <Label htmlFor="bodyFat">Vücut Yağ Oranı (%) - Opsiyonel</Label>
         <Input
           id="bodyFat"
           type="number"
@@ -356,7 +651,7 @@ function Step2Goal({ form, updateForm }: StepProps) {
     { value: "LOSE_WEIGHT", label: "Kilo Vermek", emoji: "🏃" },
     { value: "BUILD_MUSCLE", label: "Kas Yapmak", emoji: "💪" },
     { value: "MAINTAIN", label: "Formu Korumak", emoji: "⚡" },
-    { value: "ENDURANCE", label: "Dayanikliligi Artirmak", emoji: "🔥" },
+    { value: "ENDURANCE", label: "Dayanıklılığı Artırmak", emoji: "🔥" },
   ];
 
   return (
@@ -399,29 +694,29 @@ function Step2Goal({ form, updateForm }: StepProps) {
 }
 
 function Step3Health({ form, updateForm, toggleArrayItem }: StepProps) {
-  const conditions = ["Diyabet", "Tansiyon", "Kalp", "Astim", "Diger"];
+  const conditions = ["Diyabet", "Tansiyon", "Kalp", "Astim", "Diğer"];
   const allergyOptions = [
     "Laktoz",
     "Gluten",
     "Fistik",
     "Yumurta",
     "Deniz Urunleri",
-    "Diger",
+    "Diğer",
   ];
   const diets = [
     { value: "NORMAL", label: "Normal" },
     { value: "VEGETARIAN", label: "Vejetaryen" },
     { value: "VEGAN", label: "Vegan" },
     { value: "KETO", label: "Ketojenik" },
-    { value: "OTHER", label: "Diger" },
+    { value: "OTHER", label: "Diğer" },
   ];
 
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <h2 className="text-xl font-bold">Saglik Durumun</h2>
+        <h2 className="text-xl font-bold">Sağlık Durumun</h2>
         <p className="text-sm text-muted-foreground">
-          Guvenligin icin onemli bilgiler
+          Guvenligin için onemli bilgiler
         </p>
       </div>
 
@@ -455,7 +750,7 @@ function Step3Health({ form, updateForm, toggleArrayItem }: StepProps) {
 
       <div className="space-y-2">
         <Label htmlFor="injuries">
-          Sakatlik / Kisitlama - Opsiyonel
+          Sakatlık / Kişitlama - Opsiyonel
         </Label>
         <Input
           id="injuries"
@@ -463,7 +758,7 @@ function Step3Health({ form, updateForm, toggleArrayItem }: StepProps) {
           onChange={(e) =>
             updateForm("injuries", e.target.value || null)
           }
-          placeholder="Ornegin: Bel fitigi, diz problemi..."
+          placeholder="Örneğin: Bel fitigi, diz problemi..."
           className="h-12 rounded-xl"
         />
       </div>
@@ -489,18 +784,18 @@ function Step4Experience({ form, updateForm }: StepProps) {
   const levels = [
     {
       value: "BEGINNER",
-      label: "Baslangic",
-      desc: "Spor yapmaya yeni basliyorum veya duzensiz yapiyorum",
+      label: "Başlangıç",
+      desc: "Spor yapmaya yeni başlıyorum veya düzensiz yapıyorum",
     },
     {
       value: "INTERMEDIATE",
       label: "Orta Seviye",
-      desc: "6+ aydir duzenli spor yapiyorum",
+      desc: "6+ aydır düzenli spor yapıyorum",
     },
     {
       value: "ADVANCED",
-      label: "Ileri Seviye",
-      desc: "1+ yildir duzenli ve yogun spor yapiyorum",
+      label: "İleri Seviye",
+      desc: "1+ yıldır düzenli ve yoğun spor yapıyorum",
     },
   ];
 
@@ -519,8 +814,8 @@ function Step4Experience({ form, updateForm }: StepProps) {
             key={l.value}
             className={`cursor-pointer transition-all ${
               form.experienceLevel === l.value
-                ? "border-green-500 bg-green-50 dark:bg-green-950/20"
-                : "hover:border-green-200"
+          ? "border-[#FF6B35] bg-[#FF6B35]/10"
+                    : "hover:border-[#FF6B35]/30"
             }`}
             onClick={() => updateForm("experienceLevel", l.value)}
           >
@@ -548,9 +843,9 @@ function Step5Equipment({ form, updateForm, toggleArrayItem }: StepProps) {
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <h2 className="text-xl font-bold">Ekipman Erisimin</h2>
+        <h2 className="text-xl font-bold">Ekipman Erişimin</h2>
         <p className="text-sm text-muted-foreground">
-          Hangi ekipmanlara erisiminiz var?
+          Hangi ekipmanlara erişiminiz var?
         </p>
       </div>
 
@@ -565,7 +860,7 @@ function Step5Equipment({ form, updateForm, toggleArrayItem }: StepProps) {
           <SelectCard
             selected={!form.hasGymAccess}
             onClick={() => updateForm("hasGymAccess", false)}
-            label="Hayir"
+            label="Hayır"
           />
         </div>
       </div>
@@ -593,7 +888,7 @@ function Step5Equipment({ form, updateForm, toggleArrayItem }: StepProps) {
           }
         />
         <Label htmlFor="bodyweightOnly" className="cursor-pointer">
-          Sadece vucut agirligi ile calismayi tercih ederim
+          Sadece vücut ağırlığı ile calismayi tercih ederim
         </Label>
       </div>
     </div>
@@ -604,15 +899,15 @@ function Step6Time({ form, updateForm }: StepProps) {
   const durations = [15, 30, 45, 60, 90];
   const times = [
     { value: "MORNING", label: "Sabah" },
-    { value: "NOON", label: "Ogle" },
-    { value: "EVENING", label: "Aksam" },
+    { value: "NOON", label: "Öğle" },
+    { value: "EVENING", label: "Akşam" },
     { value: "ANY", label: "Farketmez" },
   ];
 
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <h2 className="text-xl font-bold">Zaman Planin</h2>
+        <h2 className="text-xl font-bold">Zaman Planın</h2>
         <p className="text-sm text-muted-foreground">
           Haftada ne kadar zaman ayirabilirsin?
         </p>
@@ -627,8 +922,8 @@ function Step6Time({ form, updateForm }: StepProps) {
               onClick={() => updateForm("daysPerWeek", d)}
               className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-medium transition-all ${
                 form.daysPerWeek === d
-                  ? "bg-green-600 text-white"
-                  : "bg-muted text-muted-foreground hover:bg-green-100"
+                  ? "bg-[#FF6B35] text-white"
+                  : "bg-muted text-muted-foreground hover:bg-[#FF6B35]/20"
               }`}
             >
               {d}
@@ -670,9 +965,9 @@ function Step6Time({ form, updateForm }: StepProps) {
 
 function Step7Nutrition({ form, updateForm }: StepProps) {
   const budgets = [
-    { value: "LOW", label: "Dusuk" },
+    { value: "LOW", label: "Düşük" },
     { value: "MEDIUM", label: "Orta" },
-    { value: "HIGH", label: "Yuksek" },
+    { value: "HIGH", label: "Yüksek" },
   ];
   const waterHabits = [
     { value: "LOW", label: "Az" },
@@ -683,14 +978,14 @@ function Step7Nutrition({ form, updateForm }: StepProps) {
   return (
     <div className="space-y-5">
       <div className="text-center">
-        <h2 className="text-xl font-bold">Beslenme Aliskanliklarin</h2>
+        <h2 className="text-xl font-bold">Beslenme Alışkanlıklarin</h2>
         <p className="text-sm text-muted-foreground">
-          Beslenme planini kisisellestirelim
+          Beslenme planıni kişisellestirelim
         </p>
       </div>
 
       <div className="space-y-3">
-        <Label>Gunde Kac Ogun Yiyorsun?</Label>
+        <Label>Gunde Kac Öğün Yiyorsun?</Label>
         <div className="flex justify-center gap-2">
           {[2, 3, 4, 5].map((m) => (
             <SelectCard
@@ -710,7 +1005,7 @@ function Step7Nutrition({ form, updateForm }: StepProps) {
           onCheckedChange={(checked) => updateForm("hasSnacks", !!checked)}
         />
         <Label htmlFor="hasSnacks" className="cursor-pointer">
-          Ara ogun yapiyorum
+          Ara öğün yapıyorum
         </Label>
       </div>
 
@@ -725,13 +1020,13 @@ function Step7Nutrition({ form, updateForm }: StepProps) {
           <SelectCard
             selected={!form.eatsAtHome}
             onClick={() => updateForm("eatsAtHome", false)}
-            label="Disarida"
+            label="Dışarıda"
           />
         </div>
       </div>
 
       <div className="space-y-3">
-        <Label>Yemek Butcen</Label>
+        <Label>Yemek Bütçen</Label>
         <div className="grid grid-cols-3 gap-2">
           {budgets.map((b) => (
             <SelectCard
@@ -745,7 +1040,7 @@ function Step7Nutrition({ form, updateForm }: StepProps) {
       </div>
 
       <div className="space-y-3">
-        <Label>Su Icme Aliskanlgin</Label>
+        <Label>Su İçme Alışkanlığın</Label>
         <div className="grid grid-cols-3 gap-2">
           {waterHabits.map((w) => (
             <SelectCard
@@ -781,8 +1076,8 @@ function SelectCard({
         full ? "w-full text-left" : ""
       } ${
         selected
-          ? "border-green-500 bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400"
-          : "border-border hover:border-green-200"
+          ? "border-[#FF6B35] bg-[#FF6B35]/10 text-[#FF6B35]"
+          : "border-border hover:border-[#FF6B35]/30"
       }`}
     >
       {label}
@@ -804,8 +1099,8 @@ function ChipToggle({
       onClick={onClick}
       className={`rounded-full border px-3 py-1.5 text-sm transition-all ${
         selected
-          ? "border-green-500 bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-          : "border-border text-muted-foreground hover:border-green-200"
+          ? "border-[#FF6B35] bg-[#FF6B35]/15 text-[#FF6B35]"
+          : "border-border text-muted-foreground hover:border-[#FF6B35]/30"
       }`}
     >
       {label}
