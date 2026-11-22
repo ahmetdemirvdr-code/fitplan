@@ -209,15 +209,17 @@ export default function AdminUserDetailPage() {
             <p className="text-sm text-[#EAEAEA]/50">Profil doldurulmamış</p>
           ) : (
             <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
-              {[
-                ["Yaş", user.profile.age],
-                ["Boy", `${user.profile.height} cm`],
-                ["Kilo", `${user.profile.weight} kg`],
-                ["Hedef", user.profile.goal],
-                ["Seviye", user.profile.experienceLevel],
-                ["Gün/hafta", user.profile.daysPerWeek],
-              ].map(([k, v]) => (
-                <div key={String(k)} className="rounded-xl bg-[#16213E] p-2">
+              {(
+                [
+                  ["Yaş", user.profile.age],
+                  ["Boy", `${user.profile.height} cm`],
+                  ["Kilo", `${user.profile.weight} kg`],
+                  ["Hedef", user.profile.goal],
+                  ["Seviye", user.profile.experienceLevel],
+                  ["Gün/hafta", user.profile.daysPerWeek],
+                ] as Array<[string, unknown]>
+              ).map(([k, v]) => (
+                <div key={k} className="rounded-xl bg-[#16213E] p-2">
                   <p className="text-[10px] text-[#EAEAEA]/40">{k}</p>
                   <p className="font-medium">{String(v ?? "-")}</p>
                 </div>
