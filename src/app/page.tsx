@@ -1,36 +1,50 @@
 import Link from "next/link";
 import { Dumbbell, Apple, Droplets, TrendingUp, Zap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero */}
-      <header className="relative overflow-hidden text-white" style={{background: "linear-gradient(135deg, #1A1A2E 0%, #1E2D4A 50%, #16213E 100%)"}}>
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-        <div className="absolute inset-0" style={{background: "radial-gradient(ellipse at 30% 50%, rgba(255,107,53,0.15) 0%, transparent 60%)"}} />
-        <div className="relative mx-auto max-w-md px-6 py-12 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm border border-white/10">
+    <div className="flex min-h-screen flex-col">
+      <header
+        className="relative overflow-hidden text-white"
+        style={{
+          background:
+            "linear-gradient(135deg, #0a0a0f 0%, #1A1A2E 45%, #16213E 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at 30% 40%, rgba(255,107,53,0.22) 0%, transparent 55%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-md px-6 pb-14 pt-10 text-center">
+          <div className="mb-8 flex justify-center">
+            <BrandLogo height={72} priority className="drop-shadow-lg" />
+          </div>
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm">
             <Zap className="h-4 w-4 text-[#FFE66D]" />
             AI Destekli Fitness Asistanı
           </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight">
+          <h1 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
             Hedeflerine Özel
             <br />
             <span className="text-[#FF6B35]">Spor & Beslenme</span>
-            <br />
-            Planı
           </h1>
           <p className="mb-8 text-lg text-[#EAEAEA]/70">
-            Yapay zeka ile sana özel antrenman programı ve beslenme planı.
-            Günlük takip, kalori hesaplama ve ilerleme analizi.
+            Yapay zeka ile sana özel antrenman ve beslenme planı. Günlük takip,
+            kalori hesabı ve ilerleme analizi.
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/register">
               <Button
                 size="lg"
-                className="w-full font-semibold text-lg h-14 rounded-xl text-white shadow-lg shadow-[#FF6B35]/25"
-                style={{background: "linear-gradient(135deg, #FF6B35, #ff8c5a)"}}
+                className="h-14 w-full rounded-xl text-lg font-semibold text-white shadow-lg shadow-[#FF6B35]/25"
+                style={{
+                  background: "linear-gradient(135deg, #FF6B35, #ff8c5a)",
+                }}
               >
                 Ücretsiz Başla
               </Button>
@@ -39,7 +53,7 @@ export default function LandingPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full border-white/20 text-white hover:bg-white/10 font-medium h-12 rounded-xl"
+                className="h-12 w-full rounded-xl border-white/20 font-medium text-white hover:bg-white/10"
               >
                 Giriş Yap
               </Button>
@@ -48,7 +62,6 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Features */}
       <section className="mx-auto max-w-md px-6 py-12">
         <h2 className="mb-8 text-center text-2xl font-bold text-foreground">
           Neler Sunuyoruz?
@@ -82,7 +95,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="bg-muted/50 py-12">
         <div className="mx-auto max-w-md px-6">
           <h2 className="mb-8 text-center text-2xl font-bold text-foreground">
@@ -90,15 +102,29 @@ export default function LandingPage() {
           </h2>
           <div className="space-y-6">
             <Step number={1} title="Kayıt Ol" desc="E-posta ile hızlıca kayıt ol" />
-            <Step number={2} title="Soruları Yanıtla" desc="7 adımda sana özel bilgilerini paylaş" />
-            <Step number={3} title="Planını Al" desc="AI sana özel spor ve beslenme planı oluştursun" />
-            <Step number={4} title="Takip Et" desc="Günlük antrenman, yemek ve su takibini yap" />
+            <Step
+              number={2}
+              title="Soruları Yanıtla"
+              desc="7 adımda sana özel bilgilerini paylaş"
+            />
+            <Step
+              number={3}
+              title="Planını Al"
+              desc="AI sana özel spor ve beslenme planı oluştursun"
+            />
+            <Step
+              number={4}
+              title="Takip Et"
+              desc="Günlük antrenman, yemek ve su takibini yap"
+            />
           </div>
         </div>
       </section>
 
-      {/* CTA */}
       <section className="mx-auto max-w-md px-6 py-12 text-center">
+        <div className="mb-4 flex justify-center">
+          <BrandLogo height={48} />
+        </div>
         <h2 className="mb-4 text-2xl font-bold">Hemen Başla!</h2>
         <p className="mb-6 text-muted-foreground">
           İlk planın ücretsiz. 7 gün boyunca tüm özellikleri dene.
@@ -106,17 +132,16 @@ export default function LandingPage() {
         <Link href="/register">
           <Button
             size="lg"
-            className="w-full font-semibold text-lg h-14 rounded-xl text-white shadow-lg shadow-[#FF6B35]/25"
-            style={{background: "linear-gradient(135deg, #FF6B35, #ff8c5a)"}}
+            className="h-14 w-full rounded-xl text-lg font-semibold text-white shadow-lg shadow-[#FF6B35]/25"
+            style={{ background: "linear-gradient(135deg, #FF6B35, #ff8c5a)" }}
           >
             Ücretsiz Kayıt Ol
           </Button>
         </Link>
       </section>
 
-      {/* Footer */}
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; 2024 FitPlan. Tüm hakları saklıdır.</p>
+        <p>&copy; {new Date().getFullYear()} Strive. Tüm hakları saklıdır.</p>
       </footer>
     </div>
   );
@@ -132,13 +157,13 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="flex gap-4 rounded-xl border bg-card p-4 shadow-sm">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-muted">
+    <div className="flex gap-4 rounded-2xl border border-[#EAEAEA]/10 bg-[#16213E]/40 p-4">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#FF6B35]/10">
         {icon}
       </div>
       <div>
-        <h3 className="font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <h3 className="mb-1 font-semibold">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
     </div>
   );
@@ -155,7 +180,7 @@ function Step({
 }) {
   return (
     <div className="flex items-start gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-white font-bold">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-sm font-bold text-white">
         {number}
       </div>
       <div>

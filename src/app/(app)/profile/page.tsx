@@ -106,7 +106,7 @@ export default function ProfilePage() {
     setRegenerating(true);
     toast.info(
       programText
-        ? "Programın FitPlan formatına dönüştürülüyor..."
+        ? "Programın Strive formatına dönüştürülüyor..."
         : "Plan yeniden oluşturuluyor..."
     );
 
@@ -365,7 +365,7 @@ export default function ProfilePage() {
                 title="Planın hazırlanıyor"
                 detail={
                   updateMode === "import"
-                    ? "Programın FitPlan formatına dönüştürülüyor..."
+                    ? "Programın Strive formatına dönüştürülüyor..."
                     : "Profiline göre yeni plan üretiliyor..."
                 }
               />
@@ -442,7 +442,7 @@ export default function ProfilePage() {
                     className="min-h-[200px] rounded-xl bg-[#16213E] text-sm"
                   />
                   <p className="text-xs text-[#EAEAEA]/40">
-                    Günler, hareketler, set/tekrar yeterli. AI FitPlan formatına çevirir.
+                    Günler, hareketler, set/tekrar yeterli. AI Strive formatına çevirir.
                   </p>
                 </div>
                 <div className="flex gap-3">

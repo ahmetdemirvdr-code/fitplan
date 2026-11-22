@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Users, LogOut, Shield, Loader2 } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, Loader2 } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function AdminLayout({
   children,
@@ -60,9 +61,9 @@ export default function AdminLayout({
     <div className="min-h-dvh bg-[#0f1424] text-[#EAEAEA]">
       <header className="border-b border-[#EAEAEA]/10 bg-[#1A1A2E]">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <div className="flex items-center gap-2 font-semibold">
-            <Shield className="h-5 w-5 text-[#FF6B35]" />
-            FitPlan Admin
+          <div className="flex items-center gap-2">
+            <BrandLogo height={28} />
+            <span className="text-sm font-semibold text-[#EAEAEA]/70">Admin</span>
           </div>
           <div className="flex items-center gap-4 text-sm">
             <span className="hidden text-[#EAEAEA]/50 sm:inline">

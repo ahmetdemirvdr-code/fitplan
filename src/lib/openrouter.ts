@@ -85,7 +85,7 @@ export async function callOpenRouterDetailed(
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": process.env.NEXTAUTH_URL || "http://localhost:3000",
-      "X-Title": "FitPlan",
+      "X-Title": "Strive",
     },
     body: JSON.stringify({
       model,

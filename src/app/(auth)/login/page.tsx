@@ -4,12 +4,13 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Dumbbell, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
+import { BrandLogo } from "@/components/brand-logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,11 +47,10 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#1A1A2E] px-4" style={{background: "radial-gradient(ellipse at top, #1E2D4A 0%, #1A1A2E 60%)"}}>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-lg shadow-[#FF6B35]/25" style={{background: "linear-gradient(135deg, #FF6B35, #ff8c5a)"}}>
-            <Dumbbell className="h-8 w-8" />
+          <div className="mb-4 flex justify-center">
+            <BrandLogo height={56} priority />
           </div>
-          <h1 className="text-2xl font-bold">FitPlan</h1>
-          <p className="mt-1 text-muted-foreground">Hesabina giriş yap</p>
+          <p className="mt-1 text-muted-foreground">Hesabına giriş yap</p>
         </div>
 
         <Card>

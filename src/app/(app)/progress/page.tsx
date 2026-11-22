@@ -246,7 +246,7 @@ export default function ProgressPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold">İlerleme</h1>
           <p className="text-muted-foreground">
-            Günlük kayıtların, takvim ve FitPuan
+            Günlük kayıtların, takvim ve Strive Puan
           </p>
         </div>
 
@@ -299,7 +299,7 @@ export default function ProgressPage() {
               <CardContent className="p-4">
                 <h3 className="mb-1 font-semibold">Aktivite Takvimi</h3>
                 <p className="mb-4 text-xs text-muted-foreground">
-                  Renkler günlük FitPuan’a göre. Güne dokunup antrenman, su ve
+                  Renkler günlük Strive Puan’a göre. Güne dokunup antrenman, su ve
                   beslenme dengesini gör.
                 </p>
 
@@ -475,7 +475,7 @@ export default function ProgressPage() {
 
             <Card>
               <CardContent className="p-4">
-                <h3 className="mb-2 font-semibold">FitPuan nasıl işler?</h3>
+                <h3 className="mb-2 font-semibold">Strive Puan nasıl işler?</h3>
                 <ul className="space-y-1 text-xs text-muted-foreground">
                   <li>• Antrenman 40 puan (dinlenme gününde otomatik tamam)</li>
                   <li>• Su hedefi 30 puan (hedefe orantılı)</li>

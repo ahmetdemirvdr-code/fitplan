@@ -7,9 +7,9 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const email = (process.env.ADMIN_EMAIL || "admin@fitplan.app").trim().toLowerCase();
+const email = (process.env.ADMIN_EMAIL || "admin@strive.app").trim().toLowerCase();
 const password = process.env.ADMIN_PASSWORD || "";
-const name = (process.env.ADMIN_NAME || "FitPlan Admin").trim();
+const name = (process.env.ADMIN_NAME || "Strive Admin").trim();
 
 if (!password || password.length < 8) {
   console.error(

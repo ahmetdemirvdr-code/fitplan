@@ -204,7 +204,7 @@ function OnboardingContent() {
 
       toast.success(
         programText
-          ? "Programın alındı! FitPlan formatına dönüştürülüyor..."
+          ? "Programın alındı! Strive formatına dönüştürülüyor..."
           : "Profil kaydedildi! Plan oluşturuluyor..."
       );
       setGeneratingPlan(true);
@@ -260,7 +260,7 @@ function OnboardingContent() {
       <PlanGeneratingStatus
         detail={
           mode === "import"
-            ? "Mevcut programın FitPlan formatına dönüştürülüyor..."
+            ? "Mevcut programın Strive formatına dönüştürülüyor..."
             : "AI sana özel spor ve beslenme planı oluşturuyor..."
         }
       />
@@ -417,7 +417,7 @@ function OnboardingContent() {
                 className="min-h-[220px] rounded-xl bg-[#16213E] text-sm"
               />
               <p className="text-xs text-[#EAEAEA]/40">
-                Günler, hareketler, set/tekrar yazman yeterli. AI bunu FitPlan formatına çevirir.
+                Günler, hareketler, set/tekrar yazman yeterli. AI bunu Strive formatına çevirir.
               </p>
             </div>
           </div>

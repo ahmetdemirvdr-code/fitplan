@@ -17,14 +17,18 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FitPlan - Kişisel Spor & Beslenme Asistanı",
+  title: "Strive - Kişisel Spor & Beslenme Asistanı",
   description:
     "AI destekli kişisel spor programı ve beslenme planı. Hedeflerinize uygun antrenman ve diyet takibi.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "FitPlan",
+    title: "Strive",
+  },
+  icons: {
+    icon: "/strive-logo.png",
+    apple: "/strive-logo.png",
   },
 };
 
