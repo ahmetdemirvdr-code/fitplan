@@ -8,6 +8,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM base AS builder
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

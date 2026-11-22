@@ -141,7 +141,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Strive. Tüm hakları saklıdır.</p>
+        <p>&copy; 2026 Strive. Tüm hakları saklıdır.</p>
       </footer>
     </div>
   );
