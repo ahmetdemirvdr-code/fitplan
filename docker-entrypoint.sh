@@ -2,7 +2,7 @@
 set -e
 
 echo "==> Applying database schema..."
-npx prisma db push --skip-generate --accept-data-loss=false
+node ./node_modules/prisma/build/index.js db push --skip-generate
 
 echo "==> Starting FitPlan..."
 exec node server.js
