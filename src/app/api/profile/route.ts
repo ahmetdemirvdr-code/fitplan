@@ -30,27 +30,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = profileSchema.parse(body);
 
-    // Check if profile already exists
-    const existing = await prisma.userProfile.findUnique({
+    const profileData = {
+      ...validated,
+      bodyFatPercentage: validated.bodyFatPercentage ?? null,
+      targetWeight: validated.targetWeight ?? null,
+      targetDuration: validated.targetDuration ?? null,
+      injuries: validated.injuries ?? null,
+    };
+
+    // Upsert: onboarding retry / plan regenerate after first save
+    const profile = await prisma.userProfile.upsert({
       where: { userId: session.user.id },
-    });
-
-    if (existing) {
-      return Response.json(
-        { error: "Profil zaten mevcut. Guncellemek icin PUT kullanin." },
-        { status: 400 }
-      );
-    }
-
-    const profile = await prisma.userProfile.create({
-      data: {
+      create: {
         userId: session.user.id,
-        ...validated,
-        bodyFatPercentage: validated.bodyFatPercentage ?? null,
-        targetWeight: validated.targetWeight ?? null,
-        targetDuration: validated.targetDuration ?? null,
-        injuries: validated.injuries ?? null,
+        ...profileData,
       },
+      update: profileData,
     });
 
     return Response.json(profile, { status: 201 });
