@@ -90,10 +90,12 @@ export default function NutritionPage() {
       const res = await fetch(`/api/food/log?id=${id}`, {
         method: "DELETE",
       });
-      if (res.ok) {
-        toast.success("Yemek silindi");
-        fetchData();
+      if (!res.ok) {
+        toast.error("Silinemedi");
+        return;
       }
+      toast.success("Yemek silindi");
+      fetchData();
     } catch {
       toast.error("Silinemedi");
     }

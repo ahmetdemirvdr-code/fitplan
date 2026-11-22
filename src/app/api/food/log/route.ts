@@ -72,3 +72,36 @@ export async function GET(request: NextRequest) {
     ) || { calories: 0, protein: 0, carbs: 0, fat: 0 },
   });
 }
+
+export async function DELETE(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
+  }
+
+  try {
+    const id =
+      request.nextUrl.searchParams.get("id") ||
+      ((await request.json().catch(() => null)) as { id?: string } | null)?.id;
+
+    if (!id) {
+      return Response.json({ error: "Kayıt kimliği gerekli" }, { status: 400 });
+    }
+
+    const foodLog = await prisma.foodLog.findUnique({
+      where: { id },
+      include: { dailyLog: true },
+    });
+
+    if (!foodLog || foodLog.dailyLog.userId !== session.user.id) {
+      return Response.json({ error: "Kayıt bulunamadı" }, { status: 404 });
+    }
+
+    await prisma.foodLog.delete({ where: { id } });
+
+    return Response.json({ message: "Kayıt silindi" });
+  } catch (error) {
+    console.error("Food delete error:", error);
+    return Response.json({ error: "Sunucu hatası" }, { status: 500 });
+  }
+}
