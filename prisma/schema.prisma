@@ -1,0 +1,279 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Goal {
+  LOSE_WEIGHT
+  BUILD_MUSCLE
+  MAINTAIN
+  ENDURANCE
+}
+
+enum DietPreference {
+  NORMAL
+  VEGETARIAN
+  VEGAN
+  KETO
+  OTHER
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum PreferredTime {
+  MORNING
+  NOON
+  EVENING
+  ANY
+}
+
+enum Budget {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum WaterHabit {
+  LOW
+  MEDIUM
+  GOOD
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String
+  name             String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  isEmailVerified  Boolean   @default(false)
+  isPremium        Boolean   @default(false)
+  premiumExpiresAt DateTime?
+
+  profile                UserProfile?
+  fitnessPlans           FitnessPlan[]
+  dailyLogs              DailyLog[]
+  pushSubscriptions      PushSubscription[]
+  notificationPreference NotificationPreference?
+}
+
+model UserProfile {
+  id                 String          @id @default(uuid())
+  userId             String          @unique
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  age                Int
+  gender             Gender
+  height             Float
+  weight             Float
+  bodyFatPercentage  Float?
+  goal               Goal
+  targetWeight       Float?
+  targetDuration     String?
+  healthConditions   String[]
+  allergies          String[]
+  injuries           String?
+  dietPreference     DietPreference
+  experienceLevel    ExperienceLevel
+  hasGymAccess       Boolean
+  homeEquipment      String[]
+  bodyweightOnly     Boolean
+  daysPerWeek        Int
+  minutesPerDay      Int
+  preferredTime      PreferredTime
+  mealsPerDay        Int
+  hasSnacks          Boolean
+  eatsAtHome         Boolean
+  budget             Budget
+  waterHabit         WaterHabit
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model FitnessPlan {
+  id                 String       @id @default(uuid())
+  userId             String
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  isActive           Boolean      @default(true)
+  durationWeeks      Int          @default(12)
+  dailyCalorieTarget Int
+  dailyWaterTarget   Float
+  proteinTarget      Int
+  carbTarget         Int
+  fatTarget          Int
+  rawAIResponse      Json
+  workoutDays        WorkoutDay[]
+  mealPlans          MealPlan[]
+
+  @@index([userId, isActive])
+}
+
+model WorkoutDay {
+  id            String      @id @default(uuid())
+  fitnessPlanId String
+  fitnessPlan   FitnessPlan @relation(fields: [fitnessPlanId], references: [id], onDelete: Cascade)
+  dayOfWeek     Int
+  weekNumber    Int
+  name          String
+  isRestDay     Boolean     @default(false)
+  exercises     Exercise[]
+  workoutLogs   WorkoutLog[]
+
+  @@index([fitnessPlanId, weekNumber, dayOfWeek])
+}
+
+model Exercise {
+  id            String       @id @default(uuid())
+  workoutDayId  String
+  workoutDay    WorkoutDay   @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
+  name          String
+  nameEn        String
+  sets          Int
+  reps          String
+  weight        String?
+  restSeconds   Int          @default(60)
+  order         Int
+  description   String
+  exerciseDbId  String?
+  gifUrl        String?
+  exerciseLogs  ExerciseLog[]
+
+  @@index([workoutDayId])
+}
+
+model MealPlan {
+  id            String      @id @default(uuid())
+  fitnessPlanId String
+  fitnessPlan   FitnessPlan @relation(fields: [fitnessPlanId], references: [id], onDelete: Cascade)
+  dayOfWeek     Int
+  mealType      MealType
+  description   String
+  calories      Int
+  protein       Float
+  carbs         Float
+  fat           Float
+
+  @@index([fitnessPlanId, dayOfWeek])
+}
+
+// ==================== DAILY TRACKING ====================
+
+model DailyLog {
+  id           String       @id @default(uuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime     @db.Date
+  weight       Float?
+  chestMeasure Float?
+  waistMeasure Float?
+  hipMeasure   Float?
+  armMeasure   Float?
+  notes        String?
+  foodLogs     FoodLog[]
+  waterLogs    WaterLog[]
+  workoutLogs  WorkoutLog[]
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model FoodLog {
+  id          String   @id @default(uuid())
+  dailyLogId  String
+  dailyLog    DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  mealType    MealType
+  description String
+  calories    Int
+  protein     Float
+  carbs       Float
+  fat         Float
+  time        DateTime @default(now())
+
+  @@index([dailyLogId])
+}
+
+model WaterLog {
+  id         String   @id @default(uuid())
+  dailyLogId String
+  dailyLog   DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  amount     Int      // ml
+  time       DateTime @default(now())
+
+  @@index([dailyLogId])
+}
+
+model WorkoutLog {
+  id           String        @id @default(uuid())
+  dailyLogId   String
+  dailyLog     DailyLog      @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  workoutDayId String
+  workoutDay   WorkoutDay    @relation(fields: [workoutDayId], references: [id])
+  startedAt    DateTime      @default(now())
+  completedAt  DateTime?
+  isCompleted  Boolean       @default(false)
+  exerciseLogs ExerciseLog[]
+
+  @@index([dailyLogId])
+}
+
+model ExerciseLog {
+  id           String     @id @default(uuid())
+  workoutLogId String
+  workoutLog   WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id])
+  setNumber    Int
+  reps         Int
+  weight       Float?
+  isCompleted  Boolean    @default(false)
+
+  @@index([workoutLogId])
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model NotificationPreference {
+  id                      String  @id @default(uuid())
+  userId                  String  @unique
+  user                    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  waterReminder           Boolean @default(true)
+  mealReminder            Boolean @default(true)
+  workoutReminder         Boolean @default(true)
+  reminderIntervalMinutes Int     @default(120)
+}
