@@ -67,6 +67,11 @@ enum UserRole {
   ADMIN
 }
 
+enum StepSource {
+  MANUAL
+  GOOGLE_HEALTH
+}
+
 // ==================== MODELS ====================
 
 model User {
@@ -88,6 +93,7 @@ model User {
   pushSubscriptions      PushSubscription[]
   notificationPreference NotificationPreference?
   aiUsages               AiUsage[]
+  googleHealthToken      GoogleHealthToken?
 }
 
 model UserProfile {
@@ -118,6 +124,7 @@ model UserProfile {
   eatsAtHome         Boolean
   budget             Budget
   waterHabit         WaterHabit
+  dailyStepTarget    Int             @default(10000)
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 }
@@ -205,9 +212,34 @@ model DailyLog {
   foodLogs     FoodLog[]
   waterLogs    WaterLog[]
   workoutLogs  WorkoutLog[]
+  stepLogs     StepLog[]
 
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+model StepLog {
+  id         String     @id @default(uuid())
+  dailyLogId String
+  dailyLog   DailyLog   @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  steps      Int
+  distance   Float?
+  source     StepSource @default(MANUAL)
+  time       DateTime   @default(now())
+
+  @@index([dailyLogId])
+}
+
+model GoogleHealthToken {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scope        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model FoodLog {

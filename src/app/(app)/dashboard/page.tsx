@@ -13,6 +13,7 @@ import {
   Sunset,
   Zap,
   Apple,
+  Footprints,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,14 @@ interface WaterData {
   totalMl: number;
 }
 
+interface StepsData {
+  totalSteps: number;
+  stepTarget: number;
+  totalCalories: number;
+  distanceKm: number;
+  percentage: number;
+}
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) {
@@ -61,6 +70,7 @@ export default function DashboardPage() {
   const [workout, setWorkout] = useState<WorkoutData | null>(null);
   const [food, setFood] = useState<FoodLogData | null>(null);
   const [water, setWater] = useState<WaterData | null>(null);
+  const [steps, setSteps] = useState<StepsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [addingWater, setAddingWater] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -68,15 +78,23 @@ export default function DashboardPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [planRes, workoutRes, foodRes, waterRes, profileRes, avatarRes] =
-        await Promise.all([
-          fetch("/api/plan/active"),
-          fetch("/api/workout/today"),
-          fetch("/api/food/log"),
-          fetch("/api/water/log"),
-          fetch("/api/profile"),
-          fetch("/api/profile/avatar"),
-        ]);
+      const [
+        planRes,
+        workoutRes,
+        foodRes,
+        waterRes,
+        stepsRes,
+        profileRes,
+        avatarRes,
+      ] = await Promise.all([
+        fetch("/api/plan/active"),
+        fetch("/api/workout/today"),
+        fetch("/api/food/log"),
+        fetch("/api/water/log"),
+        fetch("/api/steps/log"),
+        fetch("/api/profile"),
+        fetch("/api/profile/avatar"),
+      ]);
 
       if (planRes.ok) setPlan(await planRes.json());
       else setPlan(null);
@@ -88,6 +106,7 @@ export default function DashboardPage() {
       if (workoutRes.ok) setWorkout(await workoutRes.json());
       if (foodRes.ok) setFood(await foodRes.json());
       if (waterRes.ok) setWater(await waterRes.json());
+      if (stepsRes.ok) setSteps(await stepsRes.json());
     } catch (err) {
       console.error("Dashboard fetch error:", err);
     } finally {
@@ -208,6 +227,7 @@ export default function DashboardPage() {
   );
   const waterTargetMl = plan.dailyWaterTarget * 1000;
   const waterPercent = Math.min(((water?.totalMl || 0) / waterTargetMl) * 100, 100);
+  const stepPercent = steps?.percentage ?? 0;
   const workoutDone = !!workout?.workoutLog?.isCompleted;
   const workoutLabel = workout?.isRestDay
     ? "Dinlenme"
@@ -251,27 +271,34 @@ export default function DashboardPage() {
           className="rounded-2xl border border-white/[0.07] p-4"
           style={{ background: "linear-gradient(135deg, #16213E 0%, #1a1f3a 100%)" }}
         >
-          <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="grid grid-cols-5 gap-1.5 text-center">
             <div>
-              <div className="font-stat text-lg font-semibold text-[#FF6B35]">
+              <div className="font-stat text-base font-semibold text-[#FF6B35] sm:text-lg">
                 {food?.totals.calories || 0}
               </div>
               <div className="text-[10px] text-[#EAEAEA]/50">kcal</div>
             </div>
             <div>
-              <div className="font-stat text-lg font-semibold text-[#4ECDC4]">
+              <div className="font-stat text-base font-semibold text-[#4ECDC4] sm:text-lg">
                 {food?.totals.protein || 0}g
               </div>
               <div className="text-[10px] text-[#EAEAEA]/50">protein</div>
             </div>
             <div>
-              <div className="font-stat text-lg font-semibold text-[#4ECDC4]">
+              <div className="font-stat text-base font-semibold text-[#4ECDC4] sm:text-lg">
                 {((water?.totalMl || 0) / 1000).toFixed(1)}
               </div>
               <div className="text-[10px] text-[#EAEAEA]/50">L su</div>
             </div>
             <div>
-              <div className="font-stat text-sm font-semibold" style={{ color: workoutColor }}>
+              <div className="font-stat text-base font-semibold text-[#a29bfe] sm:text-lg">
+                {((steps?.totalSteps || 0) / 1000).toFixed(steps && steps.totalSteps >= 1000 ? 1 : 0)}
+                {steps && steps.totalSteps >= 1000 ? "k" : ""}
+              </div>
+              <div className="text-[10px] text-[#EAEAEA]/50">adım</div>
+            </div>
+            <div>
+              <div className="font-stat text-xs font-semibold sm:text-sm" style={{ color: workoutColor }}>
                 {workoutLabel}
               </div>
               <div className="text-[10px] text-[#EAEAEA]/50">antrenman</div>
@@ -344,6 +371,34 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Steps progress */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Footprints className="h-5 w-5 text-[#a29bfe]" />
+                <span className="font-semibold">Adım</span>
+              </div>
+              <span className="font-stat text-sm text-[#EAEAEA]/60">
+                {(steps?.totalSteps || 0).toLocaleString("tr-TR")} /{" "}
+                {(steps?.stepTarget || 10000).toLocaleString("tr-TR")}
+              </span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-[#1A1A2E]">
+              <div
+                className="h-full rounded-full bg-[#a29bfe] transition-all duration-500"
+                style={{ width: `${stepPercent}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-[#EAEAEA]/50">
+              Tahmini yakılan ~{steps?.totalCalories || 0} kcal
+              {steps?.distanceKm
+                ? ` · ${steps.distanceKm.toFixed(2)} km`
+                : ""}
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Today's workout */}
         <Card>
           <CardContent className="p-4">
@@ -368,7 +423,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick actions — 2x2 */}
+        {/* Quick actions */}
         <div className="grid grid-cols-2 gap-3">
           <Link href="/workout" className="block">
             <button
@@ -415,14 +470,27 @@ export default function DashboardPage() {
             </button>
           </Link>
 
-          <Link href="/progress" className="block">
+          <Link href="/steps" className="block">
             <button
               type="button"
-              className="flex h-full min-h-[96px] w-full flex-col items-start justify-between rounded-2xl border border-[#FFE66D]/25 p-4 text-left font-semibold text-[#EAEAEA] shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex h-full min-h-[96px] w-full flex-col items-start justify-between rounded-2xl p-4 text-left font-semibold text-white shadow-lg shadow-[#a29bfe]/25 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #6c5ce7, #a29bfe)" }}
+            >
+              <Footprints size={22} />
+              <span className="text-sm leading-tight">Adım Ekle</span>
+            </button>
+          </Link>
+
+          <Link href="/progress" className="block col-span-2">
+            <button
+              type="button"
+              className="flex h-full min-h-[72px] w-full flex-row items-center justify-between rounded-2xl border border-[#FFE66D]/25 px-4 py-3 text-left font-semibold text-[#EAEAEA] shadow-lg transition-transform hover:scale-[1.01] active:scale-[0.99]"
               style={{ background: "linear-gradient(135deg, #16213E, #1e2d4f)" }}
             >
-              <TrendingUp size={22} className="text-[#FFE66D]" />
-              <span className="text-sm leading-tight">İlerleme</span>
+              <span className="flex items-center gap-2 text-sm">
+                <TrendingUp size={22} className="text-[#FFE66D]" />
+                İlerleme
+              </span>
             </button>
           </Link>
         </div>

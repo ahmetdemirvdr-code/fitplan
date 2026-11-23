@@ -6,7 +6,7 @@ const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const FALLBACK_INPUT_PER_M = 0.15;
 const FALLBACK_OUTPUT_PER_M = 0.6;
 
-interface ChatMessage {
+export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
@@ -376,6 +376,38 @@ Bu bilgilere göre 7 günlük (1 haftalık döngü) detaylı bir spor ve beslenm
   return [
     { role: "system", content: systemPrompt },
     { role: "user", content: userPrompt },
+  ];
+}
+
+export function buildStepTargetPrompt(profile: {
+  age: number;
+  gender: string;
+  height: number;
+  weight: number;
+  goal: string;
+  experienceLevel: string;
+  minutesPerDay: number;
+}): ChatMessage[] {
+  return [
+    {
+      role: "system",
+      content: `Sen bir fitness uzmanısın. Kullanıcının fiziksel özelliklerine göre günlük adım hedefi öner.
+5000 ile 15000 arasında bir günlük adım hedefi öner.
+Yanıtı MUTLAKA geçerli JSON formatında ver: { "target": number, "reason": "string" }`,
+    },
+    {
+      role: "user",
+      content: `Kullanıcı bilgileri:
+- Yaş: ${profile.age}
+- Cinsiyet: ${profile.gender}
+- Boy: ${profile.height} cm
+- Kilo: ${profile.weight} kg
+- Hedef: ${profile.goal}
+- Deneyim seviyesi: ${profile.experienceLevel}
+- Günlük antrenman süresi: ${profile.minutesPerDay} dk
+
+Günlük adım hedefi öner.`,
+    },
   ];
 }
 

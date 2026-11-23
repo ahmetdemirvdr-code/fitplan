@@ -52,20 +52,28 @@ export async function GET(request: NextRequest) {
   const fetchStart =
     rangeStart < streakLookbackStart ? rangeStart : streakLookbackStart;
 
-  const plan = await prisma.fitnessPlan.findFirst({
-    where: { userId: session.user.id, isActive: true },
-    include: {
-      workoutDays: {
-        select: {
-          id: true,
-          dayOfWeek: true,
-          weekNumber: true,
-          name: true,
-          isRestDay: true,
+  const [plan, profile] = await Promise.all([
+    prisma.fitnessPlan.findFirst({
+      where: { userId: session.user.id, isActive: true },
+      include: {
+        workoutDays: {
+          select: {
+            id: true,
+            dayOfWeek: true,
+            weekNumber: true,
+            name: true,
+            isRestDay: true,
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.userProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { dailyStepTarget: true },
+    }),
+  ]);
+
+  const stepTarget = profile?.dailyStepTarget || 10000;
 
   const logs = await prisma.dailyLog.findMany({
     where: {
@@ -75,6 +83,7 @@ export async function GET(request: NextRequest) {
     include: {
       foodLogs: true,
       waterLogs: true,
+      stepLogs: true,
       workoutLogs: {
         include: {
           workoutDay: { select: { name: true } },
@@ -118,6 +127,8 @@ export async function GET(request: NextRequest) {
     const calories = log?.foodLogs.reduce((s, f) => s + f.calories, 0) || 0;
     const protein = log?.foodLogs.reduce((s, f) => s + f.protein, 0) || 0;
     const mealsLogged = log?.foodLogs.length || 0;
+    const totalSteps = log?.stepLogs.reduce((s, st) => s + st.steps, 0) || 0;
+    const hasStepData = (log?.stepLogs.length || 0) > 0;
     const workoutCompleted =
       log?.workoutLogs.some((w) => w.isCompleted) || false;
 
@@ -130,6 +141,9 @@ export async function GET(request: NextRequest) {
     const scored = computeDayScore({
       workoutNeeded,
       workoutCompleted,
+      steps: totalSteps,
+      stepTarget,
+      hasStepData,
       waterMl,
       waterTargetMl,
       calories,
@@ -146,6 +160,14 @@ export async function GET(request: NextRequest) {
         needed: workoutNeeded,
         completed: workoutCompleted,
         name: workoutName,
+      },
+      steps: {
+        count: totalSteps,
+        target: stepTarget,
+        pct: stepTarget
+          ? Math.min(100, Math.round((totalSteps / stepTarget) * 100))
+          : 0,
+        hasData: hasStepData,
       },
       water: {
         ml: waterMl,
@@ -222,6 +244,7 @@ export async function GET(request: NextRequest) {
       calorie: calorieTarget,
       waterMl: waterTargetMl,
       waterL: plan?.dailyWaterTarget || 2.5,
+      steps: stepTarget,
     },
     days,
     streak,

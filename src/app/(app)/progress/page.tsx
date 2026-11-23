@@ -13,6 +13,7 @@ import {
   Droplets,
   Dumbbell,
   Apple,
+  Footprints,
   Check,
   X,
 } from "lucide-react";
@@ -42,8 +43,9 @@ type CalendarDay = {
   date: string;
   score: number;
   level: DayScoreLevel;
-  points: { workout: number; water: number; nutrition: number };
+  points: { workout: number; steps: number; water: number; nutrition: number };
   workout: { needed: boolean; completed: boolean; name: string | null };
+  steps: { count: number; target: number; pct: number; hasData: boolean };
   water: { ml: number; targetMl: number; pct: number };
   nutrition: {
     calories: number;
@@ -64,7 +66,7 @@ type CalendarPayload = {
   totalPoints: number;
   todayScore: number;
   encouragement: string;
-  targets: { calorie: number; waterMl: number; waterL: number };
+  targets: { calorie: number; waterMl: number; waterL: number; steps: number };
 };
 
 const MONTH_NAMES = [
@@ -435,18 +437,30 @@ export default function ProgressPage() {
                               : "Antrenman yok"
                           }
                           pts={selected.points.workout}
-                          max={40}
+                          max={selected.steps?.hasData ? 30 : 40}
                           done={
                             !selected.workout.needed ||
                             selected.workout.completed
                           }
                         />
+                        {selected.steps?.hasData && (
+                          <ScoreRow
+                            icon={
+                              <Footprints className="h-4 w-4 text-[#a29bfe]" />
+                            }
+                            label="Adım"
+                            detail={`${selected.steps.count.toLocaleString("tr-TR")} / ${selected.steps.target.toLocaleString("tr-TR")}`}
+                            pts={selected.points.steps}
+                            max={15}
+                            done={selected.steps.pct >= 80}
+                          />
+                        )}
                         <ScoreRow
                           icon={<Droplets className="h-4 w-4 text-[#4ECDC4]" />}
                           label="Su"
                           detail={`${(selected.water.ml / 1000).toFixed(1)} / ${(selected.water.targetMl / 1000).toFixed(1)} L`}
                           pts={selected.points.water}
-                          max={30}
+                          max={selected.steps?.hasData ? 25 : 30}
                           done={selected.water.pct >= 80}
                         />
                         <ScoreRow
@@ -477,9 +491,14 @@ export default function ProgressPage() {
               <CardContent className="p-4">
                 <h3 className="mb-2 font-semibold">Strive Puan nasıl işler?</h3>
                 <ul className="space-y-1 text-xs text-muted-foreground">
-                  <li>• Antrenman 40 puan (dinlenme gününde otomatik tamam)</li>
-                  <li>• Su hedefi 30 puan (hedefe orantılı)</li>
-                  <li>• Beslenme 30 puan (öğün kaydı + kalori dengesi)</li>
+                  <li>
+                    • Adım kaydı yoksa: Antrenman 40 + Su 30 + Beslenme 30
+                  </li>
+                  <li>
+                    • Adım kaydı varsa: Antrenman 30 + Adım 15 + Su 25 +
+                    Beslenme 30
+                  </li>
+                  <li>• Adım / su hedefe orantılı; beslenme öğün + kalori</li>
                   <li>• 40+ puan günler seri (streak) sayılır</li>
                 </ul>
                 <p className="mt-3 text-xs text-muted-foreground">
