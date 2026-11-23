@@ -199,7 +199,7 @@ function ExerciseDetails({ exercise }: { exercise: Exercise }) {
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FF6B35]/15 text-[11px] font-bold text-[#FF6B35]">
                   {i + 1}
                 </span>
-                <span>{step}</span>
+                <span className="min-w-0 flex-1">{step}</span>
               </li>
             ))}
           </ol>
@@ -582,52 +582,50 @@ export default function WorkoutPage() {
                           nameEn={exercise.nameEn}
                           name={exercise.name}
                           alt={exercise.name}
-                          className="h-16 w-16 rounded-xl"
+                          className="h-16 w-16 shrink-0 rounded-xl"
                         />
 
-                        <div className="min-w-0 flex-1">
-                          <button
-                            type="button"
-                            className="flex w-full items-start justify-between gap-2 text-left"
-                            onClick={() =>
-                              setExpandedExercise(isExpanded ? null : exercise.id)
-                            }
-                          >
-                            <div>
-                              <h3
-                                className={`font-semibold ${
-                                  isCompleted ? "text-[#FF6B35] line-through" : ""
-                                }`}
-                              >
-                                {exercise.name}
-                              </h3>
-                              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                <Badge variant="secondary" className="text-xs">
-                                  {exercise.sets} set × {exercise.reps}
-                                </Badge>
-                                {exercise.weight && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {exercise.weight}
-                                  </Badge>
-                                )}
+                        <button
+                          type="button"
+                          className="flex min-w-0 flex-1 items-start justify-between gap-2 text-left"
+                          onClick={() =>
+                            setExpandedExercise(isExpanded ? null : exercise.id)
+                          }
+                        >
+                          <div className="min-w-0">
+                            <h3
+                              className={`font-semibold ${
+                                isCompleted ? "text-[#FF6B35] line-through" : ""
+                              }`}
+                            >
+                              {exercise.name}
+                            </h3>
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              <Badge variant="secondary" className="text-xs">
+                                {exercise.sets} set × {exercise.reps}
+                              </Badge>
+                              {exercise.weight && (
                                 <Badge variant="outline" className="text-xs">
-                                  <Coffee className="mr-1 h-3 w-3" />
-                                  {exercise.restSeconds}s dinlenme
+                                  {exercise.weight}
                                 </Badge>
-                              </div>
-                            </div>
-                            <span className="mt-1 text-[#EAEAEA]/40">
-                              {isExpanded ? (
-                                <ChevronUp className="h-5 w-5" />
-                              ) : (
-                                <ChevronDown className="h-5 w-5" />
                               )}
-                            </span>
-                          </button>
-
-                          {isExpanded && <ExerciseDetails exercise={exercise} />}
-                        </div>
+                              <Badge variant="outline" className="text-xs">
+                                <Coffee className="mr-1 h-3 w-3" />
+                                {exercise.restSeconds}s dinlenme
+                              </Badge>
+                            </div>
+                          </div>
+                          <span className="mt-1 shrink-0 text-[#EAEAEA]/40">
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5" />
+                            )}
+                          </span>
+                        </button>
                       </div>
+
+                      {isExpanded && <ExerciseDetails exercise={exercise} />}
                     </CardContent>
                   </Card>
                 );
