@@ -16,14 +16,19 @@ export function BrandLogo({
   priority = false,
   alt = "Strive",
 }: BrandLogoProps) {
+  // Logo is a wide wordmark (~1024x395). Serve directly so Coolify/proxy
+  // never blocks /_next/image optimization of public assets.
+  const width = Math.round(height * (1024 / 395));
+
   return (
     <Image
       src="/strive-logo.png"
       alt={alt}
-      width={Math.round(height * 3.4)}
+      width={width}
       height={height}
       priority={priority}
-      className={cn("h-auto w-auto object-contain", className)}
+      unoptimized
+      className={cn("h-auto w-auto max-w-full object-contain", className)}
       style={{ height, width: "auto" }}
     />
   );
