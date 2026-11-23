@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,14 +12,25 @@ import { BrandLogo } from "@/components/brand-logo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (session?.user?.role === "ADMIN") {
+      router.replace("/admin");
+    }
+  }, [status, session, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Drop any existing non-admin session before signing in as admin.
+      await signOut({ redirect: false });
+
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
@@ -34,6 +45,7 @@ export default function AdminLoginPage() {
 
       const me = await fetch("/api/admin/stats");
       if (!me.ok) {
+        await signOut({ redirect: false });
         toast.error("Bu hesap admin değil");
         setLoading(false);
         return;

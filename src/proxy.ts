@@ -25,9 +25,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  if (token && pathname === "/admin/login") {
-    return NextResponse.redirect(new URL("/admin", request.url));
-  }
+  // Do not bounce /admin/login → /admin when a session cookie exists.
+  // Non-admin or stale cookies would otherwise loop with the admin layout.
 
   return NextResponse.next();
 }

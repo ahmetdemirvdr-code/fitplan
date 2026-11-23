@@ -25,19 +25,35 @@ export default function AdminLayout({
       return;
     }
     if (status === "loading") return;
-    if (status === "unauthenticated") {
+
+    async function gate() {
+      if (status === "unauthenticated") {
+        router.replace("/admin/login");
+        return;
+      }
+
+      if (session?.user?.role === "ADMIN") {
+        setAllowed(true);
+        return;
+      }
+
+      // Token role may be stale — confirm via API once.
+      try {
+        const res = await fetch("/api/admin/stats");
+        if (res.ok) {
+          setAllowed(true);
+          return;
+        }
+      } catch {
+        // ignore network errors; fall through to deny
+      }
+
+      // Clear session so middleware won't bounce login ↔ admin forever.
+      await signOut({ redirect: false });
       router.replace("/admin/login");
-      return;
     }
-    if (session?.user?.role !== "ADMIN") {
-      // Double-check via API (token may be stale)
-      fetch("/api/admin/stats").then((res) => {
-        if (!res.ok) router.replace("/admin/login");
-        else setAllowed(true);
-      });
-      return;
-    }
-    setAllowed(true);
+
+    void gate();
   }, [status, session, router, isLogin]);
 
   if (isLogin) {
