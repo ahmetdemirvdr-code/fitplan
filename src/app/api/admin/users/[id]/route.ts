@@ -50,6 +50,8 @@ export async function GET(
           costUsd: true,
           promptTokens: true,
           completionTokens: true,
+          requestMessages: true,
+          responseContent: true,
           createdAt: true,
         },
       },

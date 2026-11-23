@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Users, LogOut, Loader2 } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, Loader2, MessageSquareText } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 
 export default function AdminLayout({
@@ -71,6 +71,7 @@ export default function AdminLayout({
   const nav = [
     { href: "/admin", label: "Özet", icon: LayoutDashboard },
     { href: "/admin/users", label: "Kullanıcılar", icon: Users },
+    { href: "/admin/ai-logs", label: "AI Logları", icon: MessageSquareText },
   ];
 
   return (

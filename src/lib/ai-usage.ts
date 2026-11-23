@@ -23,6 +23,8 @@ export class AiBudgetExceededError extends Error {
   }
 }
 
+const MAX_RESPONSE_CHARS = 100_000;
+
 export async function recordAiUsage(input: {
   userId?: string | null;
   purpose: string;
@@ -30,8 +32,17 @@ export async function recordAiUsage(input: {
   promptTokens: number;
   completionTokens: number;
   costUsd: number;
+  requestMessages?: unknown;
+  responseContent?: string | null;
 }) {
   try {
+    const responseContent =
+      input.responseContent == null
+        ? null
+        : input.responseContent.length > MAX_RESPONSE_CHARS
+          ? `${input.responseContent.slice(0, MAX_RESPONSE_CHARS)}\n…[truncated]`
+          : input.responseContent;
+
     await prisma.aiUsage.create({
       data: {
         userId: input.userId || null,
@@ -40,6 +51,11 @@ export async function recordAiUsage(input: {
         promptTokens: input.promptTokens,
         completionTokens: input.completionTokens,
         costUsd: input.costUsd,
+        requestMessages:
+          input.requestMessages === undefined
+            ? undefined
+            : (JSON.parse(JSON.stringify(input.requestMessages)) as object),
+        responseContent,
       },
     });
   } catch (err) {

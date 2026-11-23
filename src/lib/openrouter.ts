@@ -133,6 +133,8 @@ export async function callOpenRouterDetailed(
       promptTokens: result.promptTokens,
       completionTokens: result.completionTokens,
       costUsd: result.costUsd,
+      requestMessages: messages,
+      responseContent: result.content,
     });
   }
 

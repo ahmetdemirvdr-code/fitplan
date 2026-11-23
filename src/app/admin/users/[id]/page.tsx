@@ -47,8 +47,11 @@ type UserDetail = {
   aiUsages: Array<{
     id: string;
     purpose: string;
+    model?: string;
     displayCostUsd: number;
     createdAt: string;
+    requestMessages?: Array<{ role?: string; content?: string }> | null;
+    responseContent?: string | null;
   }>;
 };
 
@@ -60,6 +63,7 @@ export default function AdminUserDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [trialDays, setTrialDays] = useState("7");
+  const [expandedAi, setExpandedAi] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/admin/users/${id}`);
@@ -310,19 +314,61 @@ export default function AdminUserDetailPage() {
               (gösterilen)
             </span>
           </p>
-          <div className="max-h-48 space-y-1 overflow-y-auto text-xs">
-            {user.aiUsages.map((a) => (
-              <div
-                key={a.id}
-                className="flex justify-between rounded-lg bg-[#16213E] px-3 py-2"
-              >
-                <span>{a.purpose}</span>
-                <span>
-                  ${a.displayCostUsd.toFixed(4)} ·{" "}
-                  {new Date(a.createdAt).toLocaleString("tr-TR")}
-                </span>
-              </div>
-            ))}
+          <div className="max-h-[28rem] space-y-2 overflow-y-auto text-xs">
+            {user.aiUsages.map((a) => {
+              const open = expandedAi === a.id;
+              const messages = Array.isArray(a.requestMessages)
+                ? a.requestMessages
+                : [];
+              const hasPayload = messages.length > 0 || !!a.responseContent;
+              return (
+                <div key={a.id} className="rounded-lg bg-[#16213E] overflow-hidden">
+                  <button
+                    type="button"
+                    disabled={!hasPayload}
+                    className="flex w-full justify-between gap-2 px-3 py-2 text-left disabled:cursor-default"
+                    onClick={() =>
+                      hasPayload && setExpandedAi(open ? null : a.id)
+                    }
+                  >
+                    <span>
+                      {a.purpose}
+                      {hasPayload ? (
+                        <span className="ml-1 text-[#4ECDC4]">· detay</span>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 text-[#EAEAEA]/50">
+                      ${a.displayCostUsd.toFixed(4)} ·{" "}
+                      {new Date(a.createdAt).toLocaleString("tr-TR")}
+                    </span>
+                  </button>
+                  {open && (
+                    <div className="space-y-2 border-t border-[#EAEAEA]/10 px-3 py-2">
+                      {messages.map((msg, i) => (
+                        <div key={i}>
+                          <p className="mb-1 font-semibold uppercase text-[#FF6B35]">
+                            {msg.role || "message"}
+                          </p>
+                          <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] text-[#EAEAEA]/80">
+                            {msg.content || "—"}
+                          </pre>
+                        </div>
+                      ))}
+                      {a.responseContent && (
+                        <div>
+                          <p className="mb-1 font-semibold uppercase text-[#4ECDC4]">
+                            response
+                          </p>
+                          <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] text-[#EAEAEA]/60">
+                            {a.responseContent}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

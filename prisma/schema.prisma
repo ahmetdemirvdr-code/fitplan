@@ -314,7 +314,12 @@ model AiUsage {
   promptTokens     Int      @default(0)
   completionTokens Int      @default(0)
   costUsd          Float    @default(0)
+  /// Dev: chat messages sent to the model (roles + content)
+  requestMessages  Json?
+  /// Dev: raw model response (truncated if very long)
+  responseContent  String?
   createdAt        DateTime @default(now())
 
   @@index([userId, createdAt])
+  @@index([purpose, createdAt])
 }
