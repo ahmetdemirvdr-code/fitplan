@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import {
-  User,
   Settings,
   LogOut,
   ChevronRight,
@@ -27,6 +26,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Link from "next/link";
 import { PlanGeneratingStatus } from "@/components/plan-generating-status";
+import { UserAvatar } from "@/components/user-avatar";
+import { AvatarPicker } from "@/components/avatar-picker";
+import { DEFAULT_AVATAR_ID } from "@/lib/avatars";
 
 interface ProfileData {
   age: number;
@@ -36,6 +38,7 @@ interface ProfileData {
   goal: string;
   experienceLevel: string;
   daysPerWeek: number;
+  avatarId?: string;
 }
 
 interface PlanData {
@@ -72,16 +75,28 @@ export default function ProfilePage() {
   const [aiSpendDisplay, setAiSpendDisplay] = useState(0);
   const [aiSpendLimit, setAiSpendLimit] = useState<number | null>(10);
   const [aiLimitReached, setAiLimitReached] = useState(false);
+  const [avatarId, setAvatarId] = useState(DEFAULT_AVATAR_ID);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
-      const [profileRes, planRes, usageRes] = await Promise.all([
+      const [profileRes, planRes, usageRes, avatarRes] = await Promise.all([
         fetch("/api/profile"),
         fetch("/api/plan/active"),
         fetch("/api/usage"),
+        fetch("/api/profile/avatar"),
       ]);
 
-      if (profileRes.ok) setProfile(await profileRes.json());
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        setProfile(data);
+        if (data.avatarId) setAvatarId(data.avatarId);
+      }
+      if (avatarRes.ok) {
+        const data = await avatarRes.json();
+        if (data.avatarId) setAvatarId(data.avatarId);
+      }
       if (planRes.ok) setPlan(await planRes.json());
       if (usageRes.ok) {
         const usage = await usageRes.json();
@@ -97,6 +112,31 @@ export default function ProfilePage() {
       setLoading(false);
     }
   }, []);
+
+  const saveAvatar = async (nextId: string) => {
+    const previous = avatarId;
+    setAvatarId(nextId);
+    setSavingAvatar(true);
+    try {
+      const res = await fetch("/api/profile/avatar", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarId: nextId }),
+      });
+      if (!res.ok) {
+        setAvatarId(previous);
+        toast.error("Avatar kaydedilemedi");
+        return;
+      }
+      toast.success("Avatar güncellendi");
+      setPickerOpen(false);
+    } catch {
+      setAvatarId(previous);
+      toast.error("Avatar kaydedilemedi");
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -160,9 +200,21 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-md">
         {/* User Info */}
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-[#FF6B35]/20">
-            <User className="h-10 w-10 text-[#FF6B35]" />
-          </div>
+          <button
+            type="button"
+            onClick={() => setPickerOpen((o) => !o)}
+            className="mx-auto mb-3 block rounded-full transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B35]"
+            aria-label="Avatar seç"
+          >
+            <UserAvatar avatarId={avatarId} size={88} alt={session?.user?.name || "Avatar"} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setPickerOpen((o) => !o)}
+            className="mb-2 text-xs font-medium text-[#FF6B35]"
+          >
+            {pickerOpen ? "Kapat" : "Avatarı değiştir"}
+          </button>
           <h1 className="text-xl font-bold">{session?.user?.name}</h1>
           <p className="text-sm text-muted-foreground">
             {session?.user?.email}
@@ -172,6 +224,22 @@ export default function ProfilePage() {
             Ücretsiz Plan
           </Badge>
         </div>
+
+        {pickerOpen && (
+          <Card className="mb-4 border-[#FF6B35]/25">
+            <CardContent className="p-4">
+              <h3 className="mb-1 font-semibold">Strive Avatar Paketi</h3>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Fitness temalı 12 avatar — birini seç, profiline kaydedilir.
+              </p>
+              <AvatarPicker
+                value={avatarId}
+                onChange={saveAvatar}
+                disabled={savingAvatar}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Profile Stats */}
         {profile && (

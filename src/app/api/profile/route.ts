@@ -9,15 +9,24 @@ export async function GET() {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
-  const profile = await prisma.userProfile.findUnique({
-    where: { userId: session.user.id },
-  });
+  const [profile, user] = await Promise.all([
+    prisma.userProfile.findUnique({
+      where: { userId: session.user.id },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { avatarId: true },
+    }),
+  ]);
 
   if (!profile) {
     return Response.json({ error: "Profil bulunamadi" }, { status: 404 });
   }
 
-  return Response.json(profile);
+  return Response.json({
+    ...profile,
+    avatarId: user?.avatarId ?? "spark",
+  });
 }
 
 export async function POST(request: NextRequest) {

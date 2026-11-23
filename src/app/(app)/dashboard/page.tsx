@@ -17,6 +17,8 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/user-avatar";
+import { DEFAULT_AVATAR_ID } from "@/lib/avatars";
 
 interface PlanData {
   dailyCalorieTarget: number;
@@ -62,21 +64,27 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [addingWater, setAddingWater] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [avatarId, setAvatarId] = useState(DEFAULT_AVATAR_ID);
 
   const fetchData = useCallback(async () => {
     try {
-      const [planRes, workoutRes, foodRes, waterRes, profileRes] =
+      const [planRes, workoutRes, foodRes, waterRes, profileRes, avatarRes] =
         await Promise.all([
           fetch("/api/plan/active"),
           fetch("/api/workout/today"),
           fetch("/api/food/log"),
           fetch("/api/water/log"),
           fetch("/api/profile"),
+          fetch("/api/profile/avatar"),
         ]);
 
       if (planRes.ok) setPlan(await planRes.json());
       else setPlan(null);
       setHasProfile(profileRes.ok);
+      if (avatarRes.ok) {
+        const a = await avatarRes.json();
+        if (a.avatarId) setAvatarId(a.avatarId);
+      }
       if (workoutRes.ok) setWorkout(await workoutRes.json());
       if (foodRes.ok) setFood(await foodRes.json());
       if (waterRes.ok) setWater(await waterRes.json());
@@ -222,15 +230,20 @@ export default function DashboardPage() {
     <div className="px-5 py-6">
       <div className="mx-auto max-w-lg space-y-5">
         {/* Greeting */}
-        <div>
-          <div className="mb-1 flex items-center gap-3">
-            {greeting.icon}
-            <h1 className="text-2xl font-bold text-[#EAEAEA]">
-              {greeting.text}
-              {firstName ? `, ${firstName}` : ""}!
-            </h1>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="mb-1 flex items-center gap-3">
+              {greeting.icon}
+              <h1 className="text-2xl font-bold text-[#EAEAEA]">
+                {greeting.text}
+                {firstName ? `, ${firstName}` : ""}!
+              </h1>
+            </div>
+            <p className="ml-10 text-sm text-[#EAEAEA]/50">{dateStr}</p>
           </div>
-          <p className="ml-10 text-sm text-[#EAEAEA]/50">{dateStr}</p>
+          <Link href="/profile" aria-label="Profil ve avatar">
+            <UserAvatar avatarId={avatarId} size={48} />
+          </Link>
         </div>
 
         {/* Daily overview row */}

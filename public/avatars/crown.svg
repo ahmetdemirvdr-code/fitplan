@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 136 136" width="136" height="136" role="img" aria-label="Zafer">
+  <defs>
+    <linearGradient id="g" x1="20" y1="12" x2="116" y2="124" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CA6702"/>
+      <stop offset="1" stop-color="#EE9B00"/>
+    </linearGradient>
+  </defs>
+  <circle cx="68" cy="68" r="68" fill="url(#g)"/>
+  <circle cx="68" cy="68" r="60" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="3"/>
+  <g fill="white"><path d="M44 36 H92 V58 C92 78 80 90 68 90 C56 90 44 78 44 58 Z"/><path d="M44 42 H32 C28 42 26 50 30 56 C34 62 44 64 44 64"/><path d="M92 42 H104 C108 42 110 50 106 56 C102 62 92 64 92 64"/><rect x="60" y="90" width="16" height="12"/><rect x="48" y="102" width="40" height="10" rx="3"/></g>
+</svg>
