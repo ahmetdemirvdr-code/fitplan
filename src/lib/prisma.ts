@@ -10,10 +10,15 @@ function createPrismaClient() {
 
 /** Recreate if hot-reload left a stale client without newer models (e.g. stepLog). */
 function getPrisma() {
-  const existing = globalForPrisma.prisma;
-  if (existing && typeof (existing as { stepLog?: unknown }).stepLog?.findMany === "function") {
+  const existing = globalForPrisma.prisma as PrismaClient | undefined;
+  const stepLogDelegate = existing
+    ? (existing as PrismaClient & { stepLog?: { findMany?: unknown } }).stepLog
+    : undefined;
+
+  if (existing && typeof stepLogDelegate?.findMany === "function") {
     return existing;
   }
+
   const client = createPrismaClient();
   if (process.env.NODE_ENV !== "production") {
     globalForPrisma.prisma = client;
