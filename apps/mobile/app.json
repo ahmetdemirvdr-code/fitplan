@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Strive",
+    "slug": "strive",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "scheme": "strive",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1A2E"
+    },
+    "android": {
+      "package": "com.strive.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A1A2E"
+      },
+      "permissions": [
+        "ACTIVITY_RECOGNITION",
+        "FOREGROUND_SERVICE",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-image",
+      "expo-sensors",
+      "./plugins/gradle-performance"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
