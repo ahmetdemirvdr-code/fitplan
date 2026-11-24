@@ -1,15 +1,15 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
   const profile = await prisma.userProfile.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     select: { dailyStepTarget: true },
   });
 
@@ -21,8 +21,8 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const profile = await prisma.userProfile.update({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       data: { dailyStepTarget: target },
       select: { dailyStepTarget: true },
     });

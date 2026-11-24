@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import {
   callOpenRouterDetailed,
@@ -181,8 +181,8 @@ function flattenImportPhases(
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
     }
 
     const profile = await prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
     });
 
     if (!profile) {
@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
       const imported = await callJson<AIImportWorkoutResponse>(importMessages, {
         maxTokens: 16000,
         temperature: 0.2,
-        userId: session.user.id,
+        userId: user.id,
         purpose: "plan_import_workout",
       });
 
@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
         const meals = await callJson<AIMealOnlyResponse>(mealMessages, {
           maxTokens: 4096,
           temperature: 0.5,
-          userId: session.user.id,
+          userId: user.id,
           purpose: "plan_import_meals",
         });
         macros = {
@@ -273,7 +273,7 @@ export async function POST(request: NextRequest) {
       const aiPlan = await callJson<AIPlanResponse>(messages, {
         maxTokens: 8192,
         temperature: 0.7,
-        userId: session.user.id,
+        userId: user.id,
         purpose: "plan_generate",
       });
 
@@ -294,13 +294,13 @@ export async function POST(request: NextRequest) {
 
     const fitnessPlan = await prisma.$transaction(async (tx) => {
       await tx.fitnessPlan.updateMany({
-        where: { userId: session.user.id, isActive: true },
+        where: { userId: user.id, isActive: true },
         data: { isActive: false },
       });
 
       return tx.fitnessPlan.create({
         data: {
-          userId: session.user.id,
+          userId: user.id,
           durationWeeks,
           dailyCalorieTarget: macros.dailyCalorieTarget,
           dailyWaterTarget: macros.dailyWaterTarget,

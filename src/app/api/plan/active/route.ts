@@ -1,14 +1,15 @@
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
   const plan = await prisma.fitnessPlan.findFirst({
-    where: { userId: session.user.id, isActive: true },
+    where: { userId: user.id, isActive: true },
     include: {
       workoutDays: {
         include: { exercises: { orderBy: { order: "asc" } } },

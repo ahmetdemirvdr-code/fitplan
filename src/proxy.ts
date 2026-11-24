@@ -8,11 +8,24 @@ export function proxy(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(route + "/")
   );
 
-  const token =
+  const cookieToken =
     request.cookies.get("authjs.session-token")?.value ||
     request.cookies.get("__Secure-authjs.session-token")?.value;
 
-  if (!isPublicRoute && !token) {
+  const authHeader = request.headers.get("authorization");
+  const bearerToken =
+    authHeader?.startsWith("Bearer ") && authHeader.length > 7
+      ? authHeader.slice(7).trim()
+      : null;
+
+  const hasAuth = Boolean(cookieToken || bearerToken);
+
+  if (!isPublicRoute && !hasAuth) {
+    // Mobile / API clients expect JSON, not a login redirect.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 401 });
+    }
+
     const loginUrl = new URL(
       pathname.startsWith("/admin") ? "/admin/login" : "/login",
       request.url
@@ -21,12 +34,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (token && (pathname === "/login" || pathname === "/register")) {
+  if (cookieToken && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
-
-  // Do not bounce /admin/login → /admin when a session cookie exists.
-  // Non-admin or stale cookies would otherwise loop with the admin layout.
 
   return NextResponse.next();
 }

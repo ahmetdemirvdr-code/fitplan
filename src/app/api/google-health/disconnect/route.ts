@@ -1,27 +1,28 @@
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 
-export async function POST() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
   await prisma.googleHealthToken.deleteMany({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
   });
 
   return Response.json({ disconnected: true });
 }
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
   const token = await prisma.googleHealthToken.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     select: { updatedAt: true, createdAt: true },
   });
 

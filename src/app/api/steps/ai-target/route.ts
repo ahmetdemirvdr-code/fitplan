@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import {
   callOpenRouterDetailed,
@@ -6,15 +7,15 @@ import {
 } from "@/lib/openrouter";
 import { AiBudgetExceededError } from "@/lib/ai-usage";
 
-export async function POST() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
   try {
     const profile = await prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
     });
 
     if (!profile) {
@@ -34,7 +35,7 @@ export async function POST() {
     const result = await callOpenRouterDetailed(messages, {
       maxTokens: 256,
       temperature: 0.4,
-      userId: session.user.id,
+      userId: user.id,
       purpose: "step_target",
     });
 

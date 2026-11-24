@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import {
   computeDayScore,
@@ -27,8 +27,8 @@ function startOfDay(d: Date) {
 }
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
   const [plan, profile] = await Promise.all([
     prisma.fitnessPlan.findFirst({
-      where: { userId: session.user.id, isActive: true },
+      where: { userId: user.id, isActive: true },
       include: {
         workoutDays: {
           select: {
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       },
     }),
     prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       select: { dailyStepTarget: true },
     }),
   ]);
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
   const logs = await prisma.dailyLog.findMany({
     where: {
-      userId: session.user.id,
+      userId: user.id,
       date: { gte: fetchStart, lte: rangeEnd > now ? rangeEnd : now },
     },
     include: {

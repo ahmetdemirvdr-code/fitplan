@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
 
     const dailyLog = await prisma.dailyLog.upsert({
       where: {
-        userId_date: { userId: session.user.id, date: today },
+        userId_date: { userId: user.id, date: today },
       },
-      create: { userId: session.user.id, date: today },
+      create: { userId: user.id, date: today },
       update: {},
     });
 
@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
   const dailyLog = await prisma.dailyLog.findUnique({
     where: {
-      userId_date: { userId: session.user.id, date },
+      userId_date: { userId: user.id, date },
     },
     include: {
       waterLogs: { orderBy: { time: "asc" } },
@@ -69,8 +69,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
@@ -88,7 +88,7 @@ export async function DELETE(request: NextRequest) {
       include: { dailyLog: true },
     });
 
-    if (!waterLog || waterLog.dailyLog.userId !== session.user.id) {
+    if (!waterLog || waterLog.dailyLog.userId !== user.id) {
       return Response.json({ error: "Kayıt bulunamadı" }, { status: 404 });
     }
 

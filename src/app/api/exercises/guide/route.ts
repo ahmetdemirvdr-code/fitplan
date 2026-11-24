@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { getOrCreateExerciseGuide } from "@/lib/exercise-guide";
 import { AiBudgetExceededError } from "@/lib/ai-usage";
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const guide = await getOrCreateExerciseGuide(
       nameEn,
       nameTr,
-      session.user.id
+      user.id
     );
     return Response.json(guide);
   } catch (error) {

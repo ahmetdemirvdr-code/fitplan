@@ -1,22 +1,23 @@
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 
 /** Reactivate the most recent inactive plan (keeps profile & history intact). */
-export async function POST() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
   const active = await prisma.fitnessPlan.findFirst({
-    where: { userId: session.user.id, isActive: true },
+    where: { userId: user.id, isActive: true },
   });
   if (active) {
     return Response.json(active);
   }
 
   const latest = await prisma.fitnessPlan.findFirst({
-    where: { userId: session.user.id, isActive: false },
+    where: { userId: user.id, isActive: false },
     orderBy: { createdAt: "desc" },
   });
 
@@ -26,7 +27,7 @@ export async function POST() {
 
   const restored = await prisma.$transaction(async (tx) => {
     await tx.fitnessPlan.updateMany({
-      where: { userId: session.user.id, isActive: true },
+      where: { userId: user.id, isActive: true },
       data: { isActive: false },
     });
     return tx.fitnessPlan.update({

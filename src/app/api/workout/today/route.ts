@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import { getPlanWeekNumber, resolvePhaseWeekNumber } from "@/lib/plan-week";
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   dayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
 
   const plan = await prisma.fitnessPlan.findFirst({
-    where: { userId: session.user.id, isActive: true },
+    where: { userId: user.id, isActive: true },
     include: {
       workoutDays: { select: { weekNumber: true } },
     },
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
   const dailyLog = await prisma.dailyLog.findUnique({
     where: {
       userId_date: {
-        userId: session.user.id,
+        userId: user.id,
         date: todayStart,
       },
     },

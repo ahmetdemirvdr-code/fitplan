@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import { measurementSchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
 
     const dailyLog = await prisma.dailyLog.upsert({
       where: {
-        userId_date: { userId: session.user.id, date: today },
+        userId_date: { userId: user.id, date: today },
       },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         date: today,
         weight: validated.weight ?? null,
         chestMeasure: validated.chestMeasure ?? null,
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 
   const logs = await prisma.dailyLog.findMany({
     where: {
-      userId: session.user.id,
+      userId: user.id,
       date: { gte: startDate },
     },
     include: {

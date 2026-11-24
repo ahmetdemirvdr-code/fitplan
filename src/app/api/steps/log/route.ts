@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import { calculateStepCalories } from "@/lib/step-calories";
 
@@ -49,8 +49,8 @@ async function summarizeSteps(userId: string, date: Date) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -77,14 +77,14 @@ export async function POST(request: NextRequest) {
 
     const dailyLog = await prisma.dailyLog.upsert({
       where: {
-        userId_date: { userId: session.user.id, date: today },
+        userId_date: { userId: user.id, date: today },
       },
-      create: { userId: session.user.id, date: today },
+      create: { userId: user.id, date: today },
       update: {},
     });
 
     const profile = await prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       select: { weight: true, height: true },
     });
 
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const summary = await summarizeSteps(session.user.id, today);
+    const summary = await summarizeSteps(user.id, today);
 
     return Response.json(
       {
@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -133,13 +133,13 @@ export async function GET(request: NextRequest) {
   const date = dateParam ? new Date(dateParam) : new Date();
   date.setHours(0, 0, 0, 0);
 
-  const summary = await summarizeSteps(session.user.id, date);
+  const summary = await summarizeSteps(user.id, date);
   return Response.json(summary);
 }
 
 export async function DELETE(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -157,7 +157,7 @@ export async function DELETE(request: NextRequest) {
       include: { dailyLog: true },
     });
 
-    if (!stepLog || stepLog.dailyLog.userId !== session.user.id) {
+    if (!stepLog || stepLog.dailyLog.userId !== user.id) {
       return Response.json({ error: "Kayıt bulunamadı" }, { status: 404 });
     }
 
@@ -165,7 +165,7 @@ export async function DELETE(request: NextRequest) {
 
     const date = new Date(stepLog.dailyLog.date);
     date.setHours(0, 0, 0, 0);
-    const summary = await summarizeSteps(session.user.id, date);
+    const summary = await summarizeSteps(user.id, date);
 
     return Response.json({ message: "Kayıt silindi", ...summary });
   } catch (error) {

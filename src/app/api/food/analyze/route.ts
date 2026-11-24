@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { callOpenRouter, buildFoodAnalysisPrompt } from "@/lib/openrouter";
 import { AiBudgetExceededError } from "@/lib/ai-usage";
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const aiResponse = await callOpenRouter(messages, {
       maxTokens: 1024,
       temperature: 0.3,
-      userId: session.user.id,
+      userId: user.id,
       purpose: "food_analyze",
     });
 

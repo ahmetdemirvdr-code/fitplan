@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import { calculateStepCalories } from "@/lib/step-calories";
 import {
@@ -7,9 +8,9 @@ import {
   refreshGoogleAccessToken,
 } from "@/lib/google-health";
 
-export async function POST() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -21,7 +22,7 @@ export async function POST() {
   }
 
   const stored = await prisma.googleHealthToken.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
   });
 
   if (!stored) {
@@ -44,7 +45,7 @@ export async function POST() {
       const refreshed = await refreshGoogleAccessToken(stored.refreshToken);
       accessToken = refreshed.access_token;
       await prisma.googleHealthToken.update({
-        where: { userId: session.user.id },
+        where: { userId: user.id },
         data: {
           accessToken,
           expiresAt: new Date(Date.now() + refreshed.expires_in * 1000),
@@ -67,9 +68,9 @@ export async function POST() {
 
     const dailyLog = await prisma.dailyLog.upsert({
       where: {
-        userId_date: { userId: session.user.id, date: today },
+        userId_date: { userId: user.id, date: today },
       },
-      create: { userId: session.user.id, date: today },
+      create: { userId: user.id, date: today },
       update: {},
       include: { stepLogs: true },
     });
@@ -85,7 +86,7 @@ export async function POST() {
     }
 
     const profile = await prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       select: { weight: true, height: true },
     });
 
@@ -105,7 +106,7 @@ export async function POST() {
     });
 
     await prisma.googleHealthToken.update({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       data: { updatedAt: new Date() },
     });
 

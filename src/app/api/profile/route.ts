@@ -1,20 +1,20 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import { profileSchema } from "@/lib/validations";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
-  const [profile, user] = await Promise.all([
+  const [profile, dbUser] = await Promise.all([
     prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
     }),
     prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: user.id },
       select: { avatarId: true },
     }),
   ]);
@@ -25,13 +25,13 @@ export async function GET() {
 
   return Response.json({
     ...profile,
-    avatarId: user?.avatarId ?? "spark",
+    avatarId: dbUser?.avatarId ?? "spark",
   });
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
@@ -49,9 +49,9 @@ export async function POST(request: NextRequest) {
 
     // Upsert: onboarding retry / plan regenerate after first save
     const profile = await prisma.userProfile.upsert({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         ...profileData,
       },
       update: profileData,
@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkişiz erişim" }, { status: 401 });
   }
 
@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest) {
     const validated = profileSchema.parse(body);
 
     const profile = await prisma.userProfile.update({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       data: {
         ...validated,
         bodyFatPercentage: validated.bodyFatPercentage ?? null,

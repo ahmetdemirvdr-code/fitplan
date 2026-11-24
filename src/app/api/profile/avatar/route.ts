@@ -1,25 +1,25 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/get-current-user";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_AVATAR_ID, isValidAvatarId } from "@/lib/avatars";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
     select: { avatarId: true },
   });
 
-  return Response.json({ avatarId: user?.avatarId ?? DEFAULT_AVATAR_ID });
+  return Response.json({ avatarId: dbUser?.avatarId ?? DEFAULT_AVATAR_ID });
 }
 
 export async function PATCH(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser(request);
+  if (!user?.id) {
     return Response.json({ error: "Yetkisiz erişim" }, { status: 401 });
   }
 
@@ -31,13 +31,13 @@ export async function PATCH(request: NextRequest) {
       return Response.json({ error: "Geçersiz avatar" }, { status: 400 });
     }
 
-    const user = await prisma.user.update({
-      where: { id: session.user.id },
+    const updated = await prisma.user.update({
+      where: { id: user.id },
       data: { avatarId },
       select: { id: true, avatarId: true },
     });
 
-    return Response.json(user);
+    return Response.json(updated);
   } catch (error) {
     console.error("Avatar update error:", error);
     return Response.json({ error: "Sunucu hatası" }, { status: 500 });
