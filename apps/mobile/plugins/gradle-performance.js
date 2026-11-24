@@ -26,8 +26,6 @@ module.exports = function withGradlePerformance(config) {
     setProperty("org.gradle.parallel", "true");
     setProperty("org.gradle.caching", "true");
     setProperty("org.gradle.daemon", "true");
-    // Faster incremental rebuilds when android/ is kept between builds
-    setProperty("android.enableBuildCache", "true");
 
     return config;
   });
