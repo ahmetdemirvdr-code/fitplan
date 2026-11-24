@@ -70,6 +70,7 @@ enum UserRole {
 enum StepSource {
   MANUAL
   GOOGLE_HEALTH
+  DEVICE
 }
 
 // ==================== MODELS ====================

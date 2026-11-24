@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Dumbbell, Apple, Droplets, User } from "lucide-react";
@@ -14,10 +15,19 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [inAndroidApp, setInAndroidApp] = useState(false);
+
+  useEffect(() => {
+    setInAndroidApp(/StriveAndroidApp/i.test(navigator.userAgent));
+  }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#2A3A5C]/50 bg-[#1A1A2E]/80 backdrop-blur-xl pb-[env(safe-area-inset-bottom,0px)]">
-      <div className="mx-auto flex h-[4.25rem] max-w-lg items-center justify-between px-1">
+    <nav
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-[#2A3A5C]/50 bg-[#1A1A2E]/95 backdrop-blur-xl ${
+        inAndroidApp ? "pb-0" : "pb-[env(safe-area-inset-bottom,0px)]"
+      }`}
+    >
+      <div className="mx-auto flex h-16 max-w-lg items-center justify-between px-1">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname?.startsWith(item.href + "/");
@@ -41,12 +51,9 @@ export function BottomNav() {
                 }`}
               />
               {isActive && (
-                <span className="animate-in fade-in text-[11px] font-semibold leading-none whitespace-nowrap duration-200">
+                <span className="text-[11px] font-semibold leading-none whitespace-nowrap">
                   {item.label}
                 </span>
-              )}
-              {isActive && (
-                <span className="absolute bottom-1 h-1 w-1 animate-in fade-in rounded-full bg-[#FF6B35] duration-200" />
               )}
             </Link>
           );

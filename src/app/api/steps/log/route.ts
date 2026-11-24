@@ -58,7 +58,9 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as {
       steps?: number;
       distance?: number;
-      source?: "MANUAL" | "GOOGLE_HEALTH";
+      source?: "MANUAL" | "GOOGLE_HEALTH" | "DEVICE";
+      /** When true with DEVICE/GOOGLE_HEALTH, replace prior same-source logs for today */
+      replaceToday?: boolean;
     };
 
     const steps = Number(body.steps);
@@ -70,7 +72,11 @@ export async function POST(request: NextRequest) {
     }
 
     const source =
-      body.source === "GOOGLE_HEALTH" ? "GOOGLE_HEALTH" : "MANUAL";
+      body.source === "GOOGLE_HEALTH"
+        ? "GOOGLE_HEALTH"
+        : body.source === "DEVICE"
+          ? "DEVICE"
+          : "MANUAL";
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -98,6 +104,15 @@ export async function POST(request: NextRequest) {
       typeof body.distance === "number" && body.distance > 0
         ? body.distance
         : calc.distanceKm * 1000;
+
+    if (
+      body.replaceToday &&
+      (source === "DEVICE" || source === "GOOGLE_HEALTH")
+    ) {
+      await prisma.stepLog.deleteMany({
+        where: { dailyLogId: dailyLog.id, source },
+      });
+    }
 
     const stepLog = await prisma.stepLog.create({
       data: {
