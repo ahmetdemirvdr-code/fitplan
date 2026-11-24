@@ -284,7 +284,12 @@ export default function StepsPage() {
                       {log.steps.toLocaleString("tr-TR")} adım
                     </span>
                     <span className="ml-2 text-[10px] text-[#EAEAEA]/40">
-                      {log.source === "GOOGLE_HEALTH" ? "Google" : "Manuel"} ·{" "}
+                      {log.source === "GOOGLE_HEALTH"
+                        ? "Google"
+                        : log.source === "DEVICE"
+                          ? "Telefon"
+                          : "Manuel"}{" "}
+                      ·{" "}
                       {new Date(log.time).toLocaleTimeString("tr-TR", {
                         hour: "2-digit",
                         minute: "2-digit",
